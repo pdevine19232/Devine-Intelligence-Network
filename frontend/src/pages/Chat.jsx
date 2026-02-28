@@ -192,7 +192,7 @@ export default function Chat({ session }) {
             justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
           }}>
             {msg.role === 'assistant' && (
-              <div style={s.agentLabel}>CoS</div>
+              <div style={s.agentLabel}>Strategos</div>
             )}
             <div style={{
               ...s.bubble,
@@ -206,7 +206,7 @@ export default function Chat({ session }) {
 
         {loading && (
           <div style={{ ...s.messageRow, justifyContent: 'flex-start' }}>
-            <div style={s.agentLabel}>CoS</div>
+            <div style={s.agentLabel}>Strategos</div>
             <div style={{ ...s.bubble, ...s.assistantBubble }}>
               <div style={s.typingDots}>
                 <span style={{ ...s.dot_anim, animationDelay: '0ms' }} />
