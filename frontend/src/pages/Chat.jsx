@@ -24,6 +24,7 @@ export default function Chat({ session }) {
     try {
       const { data: { session: currentSession } } = await supabase.auth.getSession()
       const token = currentSession?.access_token
+      console.log('TOKEN:', token)  
 
       const res = await fetch(`${process.env.REACT_APP_API_URL}/chat`, {
         method: 'POST',
