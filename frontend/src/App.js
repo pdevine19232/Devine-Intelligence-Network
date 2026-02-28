@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import AdminPanel from './pages/AdminPanel'
+import Chat from './pages/Chat'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -25,27 +26,31 @@ function App() {
   if (loading) return <div style={{
     minHeight: '100vh', background: '#0f0f1a',
     display: 'flex', alignItems: 'center',
-    justifyContent: 'center', color: '#fff',
-    fontFamily: 'Arial'
+    justifyContent: 'center', color: '#fff', fontFamily: 'Arial'
   }}>Loading...</div>
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login"
+        <Route path='/login'
           element={!session ? <Login /> : <Navigate to="/dashboard" />}
         />
-        <Route path="/dashboard"
+        <Route path='/dashboard'
           element={session
             ? <Dashboard session={session} isAdmin={isAdmin} />
             : <Navigate to="/login" />}
         />
-        <Route path="/admin"
+        <Route path='/chat'
+          element={session
+            ? <Chat session={session} />
+            : <Navigate to="/login" />}
+        />
+        <Route path='/admin'
           element={session && isAdmin
             ? <AdminPanel session={session} />
             : <Navigate to="/dashboard" />}
         />
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path='*' element={<Navigate to='/login' />} />
       </Routes>
     </BrowserRouter>
   )
