@@ -1,4 +1,3 @@
-import { supabase } from '../supabaseClient'
 
 export default function AdminPanel({ session }) {
   return (
