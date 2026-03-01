@@ -69,7 +69,26 @@ export default function Dashboard({ session, isAdmin }) {
                 <div style={s.briefingSub}>Delivered 06:30 EST · Markets, M&A activity, macro headlines</div>
               </div>
             </div>
-            <button style={s.briefingBtn}>View Briefing</button>
+            <div style={s.briefingButtons}>
+              <button style={s.briefingBtn}>View Briefing</button>
+              {isAdmin && (
+                <button
+                  style={s.sendBriefBtn}
+                  onClick={async () => {
+                    const { data: { session: currentSession } } = await (await import('../supabaseClient')).supabase.auth.getSession()
+                    const token = currentSession?.access_token
+                    const res = await fetch(`${process.env.REACT_APP_API_URL}/send-brief`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                    if (res.ok) alert('Brief sent successfully')
+                    else alert('Error sending brief')
+                  }}
+                >
+                  Send Now
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={s.sectionLabel}>Agents</div>
@@ -411,6 +430,22 @@ const s = {
   agentMeta: {
     fontSize: '11px',
     color: '#c8c4bc',
+    letterSpacing: '0.04em',
+  },
+  briefingButtons: {
+  display: 'flex',
+  gap: '8px',
+  alignItems: 'center',
+  },
+  sendBriefBtn: {
+    background: '#c8a96e',
+    border: 'none',
+    color: '#1a1a18',
+    padding: '8px 16px',
+    fontSize: '11px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontFamily: "'DM Sans', Arial, sans-serif",
     letterSpacing: '0.04em',
   },
 }
