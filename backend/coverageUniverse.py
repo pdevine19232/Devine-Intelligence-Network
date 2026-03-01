@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import yfinance as yf
 from supabase import create_client
 import os
