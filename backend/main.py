@@ -1,3 +1,9 @@
+import threading
+import schedule
+import time
+from datetime import datetime
+import pytz
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,6 +13,20 @@ from strategos import chat
 from daily_briefer import run_daily_briefer
 
 app = FastAPI(title="Devine Intelligence Network")
+
+def run_scheduler():
+    NEW_YORK = pytz.timezone('America/New_York')
+    def job():
+        now = datetime.now(NEW_YORK)
+        print(f"Running scheduled brief at {now}")
+        run_daily_briefer()
+    schedule.every().day.at("11:30").do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+scheduler_thread.start()
 
 app.add_middleware(
     CORSMiddleware,
