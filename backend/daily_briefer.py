@@ -82,6 +82,12 @@ Here is today's live market data:
 Generate a morning brief with EXACTLY this structure. Each section gets exactly 3 bullet points.
 Each bullet is ONE sentence of fact followed by ONE sentence of why it matters. Be specific, not generic.
 
+Strategos platform ideas: Three specific, actionable ideas for improving or expanding the Devine Intelligence Network platform. 
+Think about new agents, new data sources, new workflows, new features. Be creative and ambitious. 
+The goal is to create something that adds value to the team right away and makes me stand out as a top candidate. 
+Each idea in 2-3 sentences explaining what it is and why it would be valuable. 
+I want this section to always be innovating and thinking of how to make this platform truly powerful and unique.
+
 Format it exactly like this:
 
 MARKETS
@@ -127,8 +133,10 @@ DEALS & TRANSACTIONS
 THE TAKE
 [One paragraph from Strategos. Forward-looking, opinionated, specific. What matters today and why. What should Patrick be watching. What is the implication for deals in these sectors. Do not summarize the above — add new insight.]
 
-PLATFORM IDEAS — FROM STRATEGOS
-[Three specific, actionable ideas for improving or expanding the Devine Intelligence Network platform. Think about new agents, new data sources, new workflows, new features. Be creative and ambitious. Each idea in 2-3 sentences explaining what it is and why it would be valuable.]
+STRATEGOS — PLATFORM IDEAS 
+1. [First idea — 2-3 sentences]
+2. [Second idea — 2-3 sentences]
+3. [Third idea — 2-3 sentences]
 """
 
     response = client.messages.create(
@@ -205,7 +213,7 @@ def format_html_email(brief_text, market_data):
             if current_section:
                 color = get_section_color(current_section)
                 bullets_html = "".join([
-                    f'<p style="margin: 0 0 10px 0; padding-left: 16px; border-left: 2px solid {color}20; font-size: 13px; color: #1a1a18; line-height: 1.7;">{b}</p>'
+                    f'<p style="margin: 0 0 10px 0; padding-left: 16px; border-left: 2px solid {color}20; font-size: 15px; color: #1a1a18; line-height: 1.7;">{b}</p>'
                     for b in current_bullets
                 ])
                 content_html += f"""
@@ -232,7 +240,7 @@ def format_html_email(brief_text, market_data):
             bullets_html = f'<p style="margin: 0; font-size: 13px; color: #1a1a18; line-height: 1.8;">{para_text}</p>'
         else:
             bullets_html = "".join([
-                f'<p style="margin: 0 0 10px 0; padding-left: 16px; border-left: 2px solid {color}20; font-size: 13px; color: #1a1a18; line-height: 1.7;">{b}</p>'
+                f'<p style="margin: 0 0 10px 0; padding-left: 16px; border-left: 2px solid {color}20; font-size: 15px; color: #1a1a18; line-height: 1.7;">{b}</p>'
                 for b in current_bullets
             ])
         content_html += f"""
