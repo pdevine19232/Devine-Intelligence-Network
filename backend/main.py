@@ -72,8 +72,23 @@ def chat_endpoint(
 ):
     try:
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
+        user_id = user.get("sub") or user.get("email")
         is_admin = user.get("email") in ["patrick.k.devine@outlook.com"]
-        response = chat(messages, mode=request.mode, include_codebase=is_admin)
+
+        # Fetch memories
+        from memory import get_memories, extract_and_save_memories
+        user_memories = get_memories(user_id)
+
+        # Get response
+        response = chat(messages, mode=request.mode, include_codebase=is_admin, user_memories=user_memories)
+
+        # Extract and save new memories in background
+        import threading
+        def save_memories():
+            all_messages = messages + [{"role": "assistant", "content": response}]
+            extract_and_save_memories(user_id, all_messages)
+        threading.Thread(target=save_memories, daemon=True).start()
+
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -195,3 +210,23 @@ def test_github(user=Depends(require_admin)):
             return {"status": "failed", "reason": "content was None"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
+    
+@app.get("/memories")
+def get_user_memories(user=Depends(get_current_user)):
+    try:
+        from memory import get_memories
+        user_id = user.get("sub") or user.get("email")
+        memories = get_memories(user_id)
+        return {"memories": memories}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/memories/{memory_id}")
+def delete_user_memory(memory_id: str, user=Depends(get_current_user)):
+    try:
+        from memory import delete_memory
+        user_id = user.get("sub") or user.get("email")
+        delete_memory(memory_id, user_id)
+        return {"status": "deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
