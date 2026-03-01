@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import AdminPanel from './pages/AdminPanel'
 import Chat from './pages/Chat'
+import CoverageUniverse from './pages/CoverageUniverse'
+import Company from './pages/Company'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -51,6 +53,16 @@ function App() {
             : <Navigate to="/dashboard" />}
         />
         <Route path='*' element={<Navigate to='/login' />} />
+        <Route path='/coverage'
+          element={session
+            ? <CoverageUniverse session={session} isAdmin={isAdmin} />
+            : <Navigate to="/login" />}
+        />
+        <Route path='/coverage/:ticker'
+          element={session
+            ? <Company session={session} />
+            : <Navigate to="/login" />}
+        />
       </Routes>
     </BrowserRouter>
   )

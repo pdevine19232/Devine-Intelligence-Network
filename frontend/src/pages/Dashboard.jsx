@@ -21,6 +21,7 @@ export default function Dashboard({ session, isAdmin }) {
             <div style={s.navGroupLabel}>Workspace</div>
             <div style={{...s.navItem, ...s.navItemActive}}>Dashboard</div>
             <div style={s.navItem} onClick={() => navigate('/chat')}>Strategos</div>
+            <div style={s.navItem} onClick={() => navigate('/coverage')}>Coverage Universe</div>
             <div style={s.navItem}>Daily Briefing</div>
             <div style={s.navItem}>Documents</div>
           </div>
@@ -119,6 +120,20 @@ export default function Dashboard({ session, isAdmin }) {
                 Automated morning intelligence delivered at 06:30 each trading day. Markets, deal flow, and macro headlines.
               </div>
               <div style={s.agentMeta}>Coming Week 3</div>
+            </div>
+            
+            <div style={s.agentCard}>
+              <div style={s.agentCardTop}>
+                <div style={s.agentNum}>05</div>
+                <div style={{...s.agentStatus, ...s.statusReady}}>Active</div>
+              </div>
+              <div style={s.agentName}>Coverage Universe</div>
+              <div style={s.agentDesc}>
+                Live coverage of your tracked companies organized by sector. Price performance, key metrics, and recent news for each company.
+              </div>
+              <button style={s.agentBtn} onClick={() => navigate('/coverage')}>
+                Open Coverage
+              </button>
             </div>
 
             <div style={s.agentCard}>

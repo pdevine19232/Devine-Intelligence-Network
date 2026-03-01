@@ -11,6 +11,12 @@ from typing import List, Optional
 from auth import get_current_user, require_admin
 from strategos import chat
 from daily_briefer import run_daily_briefer
+from coverageUniverse import (
+    get_companies, get_sectors, get_company_detail,
+    get_price_history, get_company_news, add_company,
+    delete_company, update_sector_index, update_sector_metrics,
+    get_company_snapshot, METRIC_LABELS, format_metric
+)
 
 app = FastAPI(title="Devine Intelligence Network")
 
@@ -76,5 +82,102 @@ def send_brief(user=Depends(require_admin)):
     try:
         run_daily_briefer()
         return {"status": "Brief sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/coverage/companies")
+def coverage_companies(user=Depends(get_current_user)):
+    try:
+        companies = get_companies()
+        sectors = get_sectors()
+        snapshots = []
+        for c in companies:
+            snap = get_company_snapshot(c['ticker'])
+            snap['sector'] = c['sector']
+            snap['description'] = c['description']
+            snap['db_name'] = c['name']
+            snapshots.append(snap)
+        return {"companies": snapshots, "sectors": sectors}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/coverage/company/{ticker}")
+def coverage_company(ticker: str, user=Depends(get_current_user)):
+    try:
+        detail = get_company_detail(ticker)
+        news = get_company_news(ticker)
+        companies = get_companies()
+        db_company = next((c for c in companies if c['ticker'] == ticker.upper()), None)
+        sectors = get_sectors()
+        sector_data = next((s for s in sectors if db_company and s['name'] == db_company['sector']), None)
+
+        formatted_metrics = {}
+        if detail and detail.get('metrics'):
+            sector_metrics = sector_data['metrics'] if sector_data else list(detail['metrics'].keys())
+            for key in sector_metrics:
+                formatted_metrics[METRIC_LABELS.get(key, key)] = format_metric(key, detail['metrics'].get(key))
+
+        return {
+            "detail": detail,
+            "news": news,
+            "db_company": db_company,
+            "sector_data": sector_data,
+            "formatted_metrics": formatted_metrics,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+class AddCompanyRequest(BaseModel):
+    ticker: str
+    sector: str
+
+@app.post("/coverage/companies")
+def coverage_add_company(request: AddCompanyRequest, user=Depends(require_admin)):
+    try:
+        company = add_company(request.ticker, request.sector)
+        return {"company": company}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/coverage/companies/{ticker}")
+def coverage_delete_company(ticker: str, user=Depends(require_admin)):
+    try:
+        result = delete_company(ticker)
+        return {"status": "deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class UpdateSectorIndexRequest(BaseModel):
+    sector_name: str
+    index_ticker: str
+    index_name: str
+
+class UpdateSectorMetricsRequest(BaseModel):
+    sector_name: str
+    metrics: list
+
+@app.post("/coverage/sectors/index")
+def coverage_update_sector_index(request: UpdateSectorIndexRequest, user=Depends(require_admin)):
+    try:
+        result = update_sector_index(request.sector_name, request.index_ticker, request.index_name)
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/coverage/sectors/metrics")
+def coverage_update_sector_metrics(request: UpdateSectorMetricsRequest, user=Depends(require_admin)):
+    try:
+        result = update_sector_metrics(request.sector_name, request.metrics)
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/coverage/history/{ticker}")
+def coverage_history(ticker: str, period: str = "1y", start: str = None, end: str = None, user=Depends(get_current_user)):
+    try:
+        print(f"Route received: ticker={ticker}, period={period}, start={start}, end={end}")
+        history = get_price_history(ticker, period, start, end)
+        return {"history": history}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
