@@ -50,6 +50,7 @@ export default function Company({ session }) {
     return await res.json()
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const init = async () => {
       setLoading(true)
@@ -71,6 +72,7 @@ export default function Company({ session }) {
     init()
   }, [ticker])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!data) return
     const reloadChart = async () => {
@@ -91,6 +93,7 @@ export default function Company({ session }) {
     reloadChart()
   }, [period])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (history.length > 0) drawChart()
   }, [history, indexHistory, chartMode, showIndex])
@@ -167,7 +170,6 @@ export default function Company({ session }) {
 
     chartParams.current = { PAD, chartW, chartH, yMin, yMax, yRange, toX, toY, mainData, indexData, W, H }
 
-    // Grid lines + Y axis labels
     ctx.strokeStyle = '#f0ede6'
     ctx.lineWidth = 1
     const gridCount = 5
@@ -184,7 +186,6 @@ export default function Company({ session }) {
       ctx.fillText(formatLabel(val, chartMode), PAD.left - 6, cy + 4)
     }
 
-    // Start value label on Y axis (bold, dark)
     const startVal = mainData[0]?.y
     if (startVal !== undefined) {
       ctx.fillStyle = '#1a1a18'
@@ -196,7 +197,6 @@ export default function Company({ session }) {
       )
     }
 
-    // Main line fill
     ctx.fillStyle = 'rgba(26,26,24,0.04)'
     ctx.beginPath()
     mainData.forEach((d, i) => {
@@ -207,7 +207,6 @@ export default function Company({ session }) {
     ctx.closePath()
     ctx.fill()
 
-    // Main line
     ctx.strokeStyle = '#1a1a18'
     ctx.lineWidth = 2
     ctx.beginPath()
@@ -216,7 +215,6 @@ export default function Company({ session }) {
     })
     ctx.stroke()
 
-    // End label for main line
     const me = mainData[mainData.length - 1]
     ctx.fillStyle = '#1a1a18'
     ctx.font = 'bold 10px monospace'
@@ -228,7 +226,6 @@ export default function Company({ session }) {
       toX(me.x) + 6, toY(me.y) + 4
     )
 
-    // Index line
     if (showIndex && indexData.length > 0) {
       ctx.strokeStyle = '#c8a96e'
       ctx.lineWidth = 1.5
@@ -252,7 +249,6 @@ export default function Company({ session }) {
       )
     }
 
-    // X axis date labels
     const numLabels = Math.min(10, history.length)
     const step = Math.floor((history.length - 1) / (numLabels - 1)) || 1
     ctx.fillStyle = '#c8c4bc'
@@ -266,7 +262,6 @@ export default function Company({ session }) {
       ctx.fillText(label, cx, H - 12)
     }
 
-    // Legend
     if (showIndex && data?.sector_data) {
       const lx = PAD.left + 10
       const ly = PAD.top + 14
@@ -286,7 +281,6 @@ export default function Company({ session }) {
       ctx.fillText(data.sector_data.index_ticker, lx + 90, ly + 3)
     }
 
-    // Hover crosshair
     if (hoverX !== undefined) {
       const { PAD: P, chartW: CW, chartH: CH } = chartParams.current
       if (hoverX >= P.left && hoverX <= P.left + CW) {
@@ -295,7 +289,6 @@ export default function Company({ session }) {
         const clampedIdx = Math.max(0, Math.min(mainData.length - 1, idx))
         const point = mainData[clampedIdx]
 
-        // Vertical line
         ctx.strokeStyle = 'rgba(26,26,24,0.15)'
         ctx.lineWidth = 1
         ctx.setLineDash([3, 3])
@@ -305,13 +298,11 @@ export default function Company({ session }) {
         ctx.stroke()
         ctx.setLineDash([])
 
-        // Dot on main line
         ctx.fillStyle = '#1a1a18'
         ctx.beginPath()
         ctx.arc(toX(point.x), toY(point.y), 4, 0, Math.PI * 2)
         ctx.fill()
 
-        // Index dot
         let idxPoint = null
         if (showIndex && indexData.length > 0) {
           const idxIdx = Math.max(0, Math.min(indexData.length - 1, clampedIdx))
@@ -322,7 +313,6 @@ export default function Company({ session }) {
           ctx.fill()
         }
 
-        // Callout box
         const mainValLabel = chartMode === 'indexed'
           ? (point.y >= 0 ? '+' : '') + point.y.toFixed(2) + '%'
           : '$' + point.raw.toFixed(2)
@@ -362,6 +352,7 @@ export default function Company({ session }) {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMouseMove = useCallback((e) => {
     const canvas = canvasRef.current
     if (!canvas || history.length === 0) return
@@ -371,6 +362,7 @@ export default function Company({ session }) {
     drawChart(mouseX)
   }, [history, indexHistory, chartMode, showIndex, data])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMouseLeave = useCallback(() => {
     drawChart()
   }, [history, indexHistory, chartMode, showIndex, data])
