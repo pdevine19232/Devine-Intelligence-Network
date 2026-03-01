@@ -72,7 +72,8 @@ def chat_endpoint(
 ):
     try:
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
-        response = chat(messages, mode=request.mode)
+        is_admin = user.get("email") in ["patrick.k.devine@outlook.com"]
+        response = chat(messages, mode=request.mode, include_codebase=is_admin)
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
