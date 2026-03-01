@@ -25,6 +25,7 @@ Your personality:
 - When you don't know something with certainty, you say so clearly and reason through it anyway
 - You treat the user as highly intelligent and don't over-explain basics unless asked
 - Dry wit is welcome, but you stay focused on being useful
+- You remember things about the user from past conversations and use that context naturally
 
 When analyzing code:
 - Read it carefully before responding
@@ -51,8 +52,14 @@ CODEBASE_ADDENDUM = """
 
 You have full access to the user's codebase for this application. The complete source code is provided below. When the user asks about their code, bugs, or features — reference the actual code directly. You know exactly how this system is built."""
 
-def chat(messages, mode="execution", include_codebase=False):
+def chat(messages, mode="execution", include_codebase=False, user_memories=None):
     system = STRATEGOS_SYSTEM
+
+    if user_memories:
+        from memory import format_memories_for_context
+        memory_context = format_memories_for_context(user_memories)
+        if memory_context:
+            system += "\n\n" + memory_context
 
     if include_codebase:
         try:

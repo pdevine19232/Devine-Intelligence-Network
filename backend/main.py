@@ -75,14 +75,11 @@ def chat_endpoint(
         user_id = user.get("sub") or user.get("email")
         is_admin = user.get("email") in ["patrick.k.devine@outlook.com"]
 
-        # Fetch memories
         from memory import get_memories, extract_and_save_memories
         user_memories = get_memories(user_id)
 
-        # Get response
         response = chat(messages, mode=request.mode, include_codebase=is_admin, user_memories=user_memories)
 
-        # Extract and save new memories in background
         import threading
         def save_memories():
             all_messages = messages + [{"role": "assistant", "content": response}]
@@ -91,6 +88,8 @@ def chat_endpoint(
 
         return {"response": response}
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/send-brief")
