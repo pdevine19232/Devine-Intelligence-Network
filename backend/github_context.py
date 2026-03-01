@@ -21,6 +21,8 @@ INCLUDE_PATHS = [
     "backend/coverageUniverse.py",
     "backend/daily_briefer.py",
     "backend/auth.py",
+    "backend/memory.py",
+    "backend/github_context.py",
     "frontend/src/App.js",
     "frontend/src/pages/Dashboard.jsx",
     "frontend/src/pages/Chat.jsx",
