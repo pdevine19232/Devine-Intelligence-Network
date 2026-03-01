@@ -45,7 +45,7 @@ def extract_and_save_memories(user_id, messages):
             conversation_text += f"{role}: {m['content']}\n\n"
 
         response = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=1000,
             system=EXTRACTION_PROMPT,
             messages=[{"role": "user", "content": conversation_text}]
