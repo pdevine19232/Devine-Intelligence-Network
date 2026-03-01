@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from auth import get_current_user, require_admin
 from strategos import chat
+from daily_briefer import run_daily_briefer
 
 app = FastAPI(title="Devine Intelligence Network")
 
@@ -47,5 +48,13 @@ def chat_endpoint(
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
         response = chat(messages, mode=request.mode)
         return {"response": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/send-brief")
+def send_brief(user=Depends(require_admin)):
+    try:
+        run_daily_briefer()
+        return {"status": "Brief sent successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
