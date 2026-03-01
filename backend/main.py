@@ -181,3 +181,16 @@ def coverage_history(ticker: str, period: str = "1y", start: str = None, end: st
         return {"history": history}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/test-github")
+def test_github(user=Depends(require_admin)):
+    try:
+        from github_context import get_file_content
+        content = get_file_content("backend/main.py")
+        if content:
+            return {"status": "success", "chars": len(content)}
+        else:
+            return {"status": "failed", "reason": "content was None"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
