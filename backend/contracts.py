@@ -38,9 +38,31 @@ def format_currency(value):
     except:
         return str(value)
 
+def fetch_description_text(url):
+    """Fetch and parse description HTML from SAM.gov"""
+    try:
+        res = requests.get(url, timeout=8)
+        if not res.ok:
+            return None
+        content_type = res.headers.get("content-type", "")
+        if "html" in content_type or res.text.strip().startswith("<"):
+            try:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(res.text, "html.parser")
+                text = soup.get_text(separator="\n", strip=True)
+                # Clean up excessive blank lines
+                lines = [l for l in text.splitlines() if l.strip()]
+                return "\n".join(lines)
+            except:
+                return res.text[:2000]
+        return res.text[:2000]
+    except Exception as e:
+        print(f"Description fetch error: {e}")
+        return None
+
 def fetch_opportunities(naics_code=None, set_aside=None, limit=25, days_back=30, keyword=None):
     posted_from, posted_to = get_date_range(days_back)
-    
+
     params = {
         "api_key": SAM_API_KEY,
         "limit": limit,
@@ -50,7 +72,7 @@ def fetch_opportunities(naics_code=None, set_aside=None, limit=25, days_back=30,
         "ptype": "o,p,k",
         "active": "true",
     }
-    
+
     if naics_code:
         params["naicsCode"] = naics_code
     if set_aside:
@@ -114,7 +136,6 @@ def score_opportunity(opp):
         score += 8
         reasons.append("GSA — fastest payment cycles")
 
-    # Bonus if contract value is listed
     award = opp.get("award") or {}
     if award.get("amount"):
         score += 5
@@ -125,7 +146,7 @@ def score_opportunity(opp):
 
 def parse_opportunity(opp):
     score, reasons = score_opportunity(opp)
-    
+
     # Parse deadline
     deadline_raw = opp.get("responseDeadLine")
     deadline_str = None
@@ -144,7 +165,7 @@ def parse_opportunity(opp):
     contact_email = primary_contact.get("email") if primary_contact else None
     contact_name = primary_contact.get("fullName") if primary_contact else None
 
-    # Contract value — from award block or estimatedTotalValue
+    # Contract value
     award = opp.get("award") or {}
     contract_value = None
     if award.get("amount"):
@@ -152,26 +173,32 @@ def parse_opportunity(opp):
     elif opp.get("estimatedTotalValue"):
         contract_value = format_currency(opp["estimatedTotalValue"])
 
-    # Award date and winner
+    # Award info
     award_date = award.get("date")
     awardee = None
     awardee_info = award.get("awardee") or {}
     if awardee_info.get("name"):
         awardee = awardee_info["name"]
 
-    # Description
-    description = opp.get("description") or opp.get("synopsis") or None
+    # Description — fetch full text if it's a URL
+    raw_desc = opp.get("description") or opp.get("synopsis") or None
+    description = None
+    if raw_desc:
+        if raw_desc.strip().startswith("http"):
+            description = fetch_description_text(raw_desc.strip())
+        else:
+            description = raw_desc
 
     # Attachments / resource links
     resource_links = opp.get("resourceLinks") or []
     attachments = []
     for link in resource_links:
         if isinstance(link, dict):
-            attachments.append({
-                "name": link.get("name") or link.get("url", "").split("/")[-1] or "Document",
-                "url": link.get("url") or link.get("link")
-            })
-        elif isinstance(link, str):
+            url = link.get("url") or link.get("link") or ""
+            name = link.get("name") or url.split("/")[-1] or "Document"
+            if url:
+                attachments.append({"name": name, "url": url})
+        elif isinstance(link, str) and link.startswith("http"):
             attachments.append({
                 "name": link.split("/")[-1] or "Document",
                 "url": link
