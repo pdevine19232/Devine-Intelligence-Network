@@ -64,7 +64,11 @@ function App() {
             ? <Company session={session} />
             : <Navigate to="/login" />}
         />
-        <Route path="/contracts" element={<ProtectedRoute><Contracts session={session} /></ProtectedRoute>} />
+        <Route path='/contracts'
+          element={session
+            ? <Contracts session={session} />
+            : <Navigate to="/login" />}
+        />
       </Routes>
     </BrowserRouter>
   )
