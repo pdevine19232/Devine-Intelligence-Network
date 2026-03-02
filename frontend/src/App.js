@@ -7,6 +7,7 @@ import AdminPanel from './pages/AdminPanel'
 import Chat from './pages/Chat'
 import CoverageUniverse from './pages/CoverageUniverse'
 import Company from './pages/Company'
+import Contracts from './pages/Contracts'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -63,6 +64,7 @@ function App() {
             ? <Company session={session} />
             : <Navigate to="/login" />}
         />
+        <Route path="/contracts" element={<ProtectedRoute><Contracts session={session} /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

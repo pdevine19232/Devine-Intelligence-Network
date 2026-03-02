@@ -23,6 +23,7 @@ INCLUDE_PATHS = [
     "backend/auth.py",
     "backend/memory.py",
     "backend/github_context.py",
+    "backend/contracts.py",
     "frontend/src/App.js",
     "frontend/src/pages/Dashboard.jsx",
     "frontend/src/pages/Chat.jsx",
@@ -30,6 +31,7 @@ INCLUDE_PATHS = [
     "frontend/src/pages/CoverageUniverse.jsx",
     "frontend/src/pages/AdminPanel.jsx",
     "frontend/src/pages/Login.jsx",
+    "frontend/src/pages/Contracts.jsx",
 ]
 
 def get_file_content(path):

@@ -197,6 +197,27 @@ def coverage_history(ticker: str, period: str = "1y", start: str = None, end: st
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@app.get("/contracts")
+def get_contracts(
+    naics: str = None,
+    set_aside: str = None,
+    keyword: str = None,
+    days_back: int = 30,
+    user=Depends(get_current_user)
+):
+    try:
+        from contracts import get_opportunities
+        opportunities = get_opportunities(
+            naics_filter=naics,
+            set_aside_filter=set_aside,
+            keyword=keyword,
+            days_back=days_back
+        )
+        return {"opportunities": opportunities, "count": len(opportunities)}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/test-github")
 def test_github(user=Depends(require_admin)):

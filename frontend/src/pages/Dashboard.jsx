@@ -22,6 +22,7 @@ export default function Dashboard({ session, isAdmin }) {
             <div style={{...s.navItem, ...s.navItemActive}}>Dashboard</div>
             <div style={s.navItem} onClick={() => navigate('/chat')}>Strategos</div>
             <div style={s.navItem} onClick={() => navigate('/coverage')}>Coverage Universe</div>
+            <div style={s.navItem} onClick={() => navigate('/contracts')}>Contracts</div>
             <div style={s.navItem}>Daily Briefing</div>
             <div style={s.navItem}>Documents</div>
           </div>
@@ -158,6 +159,21 @@ export default function Dashboard({ session, isAdmin }) {
                 Persistent deal and client context across sessions. Strategos remembers everything without you repeating yourself.
               </div>
               <div style={s.agentMeta}>Coming Week 5</div>
+            </div>
+
+
+            <div style={s.agentCard}>
+              <div style={s.agentCardTop}>
+                <div style={s.agentNum}>06</div>
+                <div style={{...s.agentStatus, ...s.statusReady}}>Active</div>
+              </div>
+              <div style={s.agentName}>Contract Intelligence</div>
+              <div style={s.agentDesc}>
+                Live federal contract opportunities from SAM.gov, scored and ranked for fit. Generate capability statements instantly.
+              </div>
+              <button style={s.agentBtn} onClick={() => navigate('/contracts')}>
+                Open Contracts
+              </button>
             </div>
 
           </div>
