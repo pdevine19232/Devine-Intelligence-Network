@@ -268,10 +268,22 @@ Keep it sharp, confident, and specific to this opportunity.`
                 </div>
               )}
 
+              {/* Contract value highlight */}
+              {selected.contract_value && (
+                <div style={s.valueBox}>
+                  <div style={s.valueLabel}>CONTRACT VALUE</div>
+                  <div style={s.valueAmount}>{selected.contract_value}</div>
+                  {selected.awardee && (
+                    <div style={s.valueAwardee}>Awarded to: {selected.awardee}</div>
+                  )}
+                </div>
+              )}
+
               <div style={s.detailGrid}>
                 {[
                   ['Agency', selected.agency],
                   ['Office', selected.office || selected.sub_agency],
+                  ['Location', selected.location],
                   ['Solicitation #', selected.solicitation_number],
                   ['NAICS Code', selected.naics],
                   ['Set-Aside', selected.set_aside || 'None'],
@@ -287,6 +299,32 @@ Keep it sharp, confident, and specific to this opportunity.`
                   </div>
                 ) : null)}
               </div>
+
+              {/* Description */}
+              {selected.description && (
+                <div style={s.descBox}>
+                  <div style={s.descLabel}>DESCRIPTION</div>
+                  <div style={s.descContent}>{selected.description}</div>
+                </div>
+              )}
+
+              {/* Attachments */}
+              {selected.attachments && selected.attachments.length > 0 && (
+                <div style={s.attachBox}>
+                  <div style={s.descLabel}>DOCUMENTS & ATTACHMENTS</div>
+                  {selected.attachments.map((att, i) => (
+                    <a
+                      key={i}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={s.attachLink}
+                    >
+                      ↓ {att.name}
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <button
                 style={s.draftBtn}
@@ -395,5 +433,39 @@ const s = {
     padding: '7px 14px', fontSize: '11px', background: '#faf9f6',
     border: '1px solid #e8e4dc', color: '#4a4840', cursor: 'pointer',
     fontFamily: "'DM Sans', Arial, sans-serif",
+  },
+  valueBox: {
+    background: '#1a1a18', padding: '16px 20px', marginBottom: '20px',
+  },
+  valueLabel: {
+    fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em',
+    color: '#4a4840', marginBottom: '6px',
+  },
+  valueAmount: {
+    fontSize: '28px', fontWeight: '700', color: '#c8a96e', letterSpacing: '-0.02em',
+  },
+  valueAwardee: {
+    fontSize: '11px', color: '#8a8880', marginTop: '4px',
+  },
+  descBox: {
+    background: '#fff', border: '1px solid #e8e4dc',
+    padding: '16px 20px', marginBottom: '16px',
+  },
+  descLabel: {
+    fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em',
+    color: '#aaa89f', marginBottom: '10px',
+  },
+  descContent: {
+    fontSize: '12px', color: '#4a4840', lineHeight: '1.8',
+    whiteSpace: 'pre-wrap', maxHeight: '200px', overflowY: 'auto',
+  },
+  attachBox: {
+    background: '#fff', border: '1px solid #e8e4dc',
+    padding: '16px 20px', marginBottom: '16px',
+  },
+  attachLink: {
+    display: 'block', fontSize: '12px', color: '#1a4060',
+    textDecoration: 'none', padding: '4px 0',
+    borderBottom: '1px solid #f0ede6', lineHeight: '1.8',
   },
 }
