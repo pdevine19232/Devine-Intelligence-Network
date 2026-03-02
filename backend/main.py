@@ -222,8 +222,12 @@ def get_contracts(
 @app.post("/contracts/analyze")
 def analyze_contract(request: ChatRequest, user=Depends(get_current_user)):
     try:
+        import anthropic
+        import os
+        import json
+
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
-        
+
         system = """You are a government contract margin analyst. Your job is to analyze federal contract opportunities and determine if they are profitable for a small business reseller/distributor.
 
 When given a contract opportunity:
@@ -254,28 +258,29 @@ Always respond in this exact JSON format:
 If you cannot determine pricing, set estimated_unit_cost to null and explain in verdict_reason.
 Return ONLY the JSON, no other text."""
 
-        response = client.messages.create(
-            model="claude-opus-4-6",
+        ac = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+        response = ac.messages.create(
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             system=system,
             tools=[{"type": "web_search_20250305", "name": "web_search"}],
             messages=messages
         )
 
-        # Extract text from response
         full_text = ""
         for block in response.content:
             if hasattr(block, "text"):
                 full_text += block.text
 
-        import json
         clean = full_text.strip().replace("```json", "").replace("```", "").strip()
         analysis = json.loads(clean)
         return {"analysis": analysis}
 
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        error_detail = traceback.format_exc()
+        print(f"ANALYZE ERROR: {error_detail}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/test-github")
