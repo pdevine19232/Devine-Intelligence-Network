@@ -91,7 +91,7 @@ def chat_endpoint(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.post("/send-brief")
 def send_brief(user=Depends(require_admin)):
     try:
@@ -99,7 +99,7 @@ def send_brief(user=Depends(require_admin)):
         return {"status": "Brief sent successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.get("/coverage/companies")
 def coverage_companies(user=Depends(get_current_user)):
     try:
@@ -141,7 +141,6 @@ def coverage_company(ticker: str, user=Depends(get_current_user)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
 class AddCompanyRequest(BaseModel):
     ticker: str
@@ -196,7 +195,7 @@ def coverage_history(ticker: str, period: str = "1y", start: str = None, end: st
         return {"history": history}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.get("/contracts")
 def get_contracts(
     naics: str = None,
@@ -218,7 +217,7 @@ def get_contracts(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.post("/contracts/analyze")
 def analyze_contract(request: ChatRequest, user=Depends(get_current_user)):
     try:
@@ -226,7 +225,11 @@ def analyze_contract(request: ChatRequest, user=Depends(get_current_user)):
         import os
         import json
 
-        messages = [{"role": m.role, "content": m.content} for m in request.messages]
+        # Truncate content to avoid rate limits
+        messages = []
+        for m in request.messages:
+            content = m.content[:3000] if len(m.content) > 3000 else m.content
+            messages.append({"role": m.role, "content": content})
 
         system = """You are a government contract margin analyst. Your job is to analyze federal contract opportunities and determine if they are profitable for a small business reseller/distributor.
 
@@ -261,7 +264,7 @@ Return ONLY the JSON, no other text."""
         ac = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
         response = ac.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-haiku-4-5-20251001",
             max_tokens=2000,
             system=system,
             tools=[{"type": "web_search_20250305", "name": "web_search"}],
@@ -294,7 +297,7 @@ def test_github(user=Depends(require_admin)):
             return {"status": "failed", "reason": "content was None"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
-    
+
 @app.get("/memories")
 def get_user_memories(user=Depends(get_current_user)):
     try:
