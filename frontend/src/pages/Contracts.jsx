@@ -51,6 +51,7 @@ export default function Contracts({ session }) {
   const [draft, setDraft] = useState(null)
   const [analyzeLoading, setAnalyzeLoading] = useState(false)
   const [analysis, setAnalysis] = useState(null)
+  const [analyzeError, setAnalyzeError] = useState(null)
 
   const getToken = async () => {
     const { data: { session: s } } = await supabase.auth.getSession()
@@ -132,6 +133,7 @@ Keep it sharp, confident, and specific to this opportunity.`
   const analyzeMargin = async (opp) => {
     setAnalyzeLoading(true)
     setAnalysis(null)
+    setAnalyzeError(null)
     try {
       const token = await getToken()
       const prompt = `Analyze this government contract opportunity for margin and profitability:
@@ -155,9 +157,14 @@ Search for current supplier pricing for the specific products requested. Calcula
         })
       })
       const data = await res.json()
-      if (data.analysis) setAnalysis(data.analysis)
+      if (data.analysis) {
+        setAnalysis(data.analysis)
+      } else {
+        setAnalyzeError(data.detail || 'Analysis failed — check backend logs')
+      }
     } catch (err) {
       console.error('Analyze error:', err)
+      setAnalyzeError('Connection error — is the backend running?')
     } finally {
       setAnalyzeLoading(false)
     }
@@ -237,7 +244,7 @@ Search for current supplier pricing for the specific products requested. Calcula
                   borderColor: isSelected ? '#1a1a18' : '#e8e4dc',
                   background: isSelected ? '#faf9f6' : '#fff',
                 }}
-                onClick={() => { setSelected(opp); setDraft(null); setAnalysis(null) }}
+                onClick={() => { setSelected(opp); setDraft(null); setAnalysis(null); setAnalyzeError(null) }}
               >
                 <div style={s.cardTop}>
                   <div style={s.cardTitle}>{opp.title}</div>
@@ -366,6 +373,13 @@ Search for current supplier pricing for the specific products requested. Calcula
               >
                 {analyzeLoading ? '◎ Searching supplier prices...' : '$ Analyze Margin & Suppliers'}
               </button>
+
+              {/* ANALYSIS ERROR */}
+              {analyzeError && (
+                <div style={{ padding: '12px 16px', background: '#fff0f0', border: '1px solid #f5c6cb', color: '#c0392b', fontSize: '12px', marginBottom: '8px' }}>
+                  {analyzeError}
+                </div>
+              )}
 
               {/* ANALYSIS RESULTS */}
               {analysis && (

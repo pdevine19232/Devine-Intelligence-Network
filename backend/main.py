@@ -263,12 +263,13 @@ Return ONLY the JSON, no other text."""
 
         ac = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-        response = ac.messages.create(
+        response = ac.beta.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=2000,
             system=system,
             tools=[{"type": "web_search_20250305", "name": "web_search"}],
-            messages=messages
+            messages=messages,
+            betas=["web-search-2025-03-05"]
         )
 
         full_text = ""
