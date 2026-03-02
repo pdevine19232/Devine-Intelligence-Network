@@ -218,6 +218,65 @@ def get_contracts(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/contracts/analyze")
+def analyze_contract(request: ChatRequest, user=Depends(get_current_user)):
+    try:
+        messages = [{"role": m.role, "content": m.content} for m in request.messages]
+        
+        system = """You are a government contract margin analyst. Your job is to analyze federal contract opportunities and determine if they are profitable for a small business reseller/distributor.
+
+When given a contract opportunity:
+1. Identify the specific product(s) being requested
+2. Search for current pricing from major distributors: Grainger, McMaster-Carr, MSC Industrial, Amazon Business, Global Industrial, Fastenal
+3. Estimate the unit cost to source the product
+4. Calculate the margin based on the contract value
+5. Give a clear BID / NO BID recommendation
+
+Always respond in this exact JSON format:
+{
+  "product_identified": "specific product name",
+  "quantity": "quantity if mentioned or unknown",
+  "estimated_unit_cost": 0.00,
+  "estimated_unit_price": 0.00,
+  "estimated_margin_pct": 0.0,
+  "estimated_total_margin": 0.00,
+  "recommended_bid_price": 0.00,
+  "top_suppliers": [
+    {"name": "Supplier name", "price": 0.00, "url": "url if found"}
+  ],
+  "verdict": "BID" or "NO BID" or "INVESTIGATE",
+  "verdict_reason": "One sentence explanation",
+  "risks": ["risk 1", "risk 2"],
+  "next_steps": ["step 1", "step 2"]
+}
+
+If you cannot determine pricing, set estimated_unit_cost to null and explain in verdict_reason.
+Return ONLY the JSON, no other text."""
+
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=2000,
+            system=system,
+            tools=[{"type": "web_search_20250305", "name": "web_search"}],
+            messages=messages
+        )
+
+        # Extract text from response
+        full_text = ""
+        for block in response.content:
+            if hasattr(block, "text"):
+                full_text += block.text
+
+        import json
+        clean = full_text.strip().replace("```json", "").replace("```", "").strip()
+        analysis = json.loads(clean)
+        return {"analysis": analysis}
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/test-github")
 def test_github(user=Depends(require_admin)):

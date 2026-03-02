@@ -49,6 +49,8 @@ export default function Contracts({ session }) {
   })
   const [draftLoading, setDraftLoading] = useState(false)
   const [draft, setDraft] = useState(null)
+  const [analyzeLoading, setAnalyzeLoading] = useState(false)
+  const [analysis, setAnalysis] = useState(null)
 
   const getToken = async () => {
     const { data: { session: s } } = await supabase.auth.getSession()
@@ -60,6 +62,7 @@ export default function Contracts({ session }) {
     setError(null)
     setSelected(null)
     setDraft(null)
+    setAnalysis(null)
     try {
       const token = await getToken()
       const params = new URLSearchParams()
@@ -123,6 +126,40 @@ Keep it sharp, confident, and specific to this opportunity.`
       console.error(err)
     } finally {
       setDraftLoading(false)
+    }
+  }
+
+  const analyzeMargin = async (opp) => {
+    setAnalyzeLoading(true)
+    setAnalysis(null)
+    try {
+      const token = await getToken()
+      const prompt = `Analyze this government contract opportunity for margin and profitability:
+
+Title: ${opp.title}
+Agency: ${opp.agency}
+NAICS: ${opp.naics}
+Type: ${opp.type}
+Contract Value: ${opp.contract_value || 'Not specified'}
+Description: ${opp.description || 'Not provided'}
+Solicitation Number: ${opp.solicitation_number}
+
+Search for current supplier pricing for the specific products requested. Calculate the potential margin for a small business reseller. Give a clear BID or NO BID recommendation.`
+
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/contracts/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          mode: 'execution'
+        })
+      })
+      const data = await res.json()
+      if (data.analysis) setAnalysis(data.analysis)
+    } catch (err) {
+      console.error('Analyze error:', err)
+    } finally {
+      setAnalyzeLoading(false)
     }
   }
 
@@ -200,15 +237,13 @@ Keep it sharp, confident, and specific to this opportunity.`
                   borderColor: isSelected ? '#1a1a18' : '#e8e4dc',
                   background: isSelected ? '#faf9f6' : '#fff',
                 }}
-                onClick={() => { setSelected(opp); setDraft(null) }}
+                onClick={() => { setSelected(opp); setDraft(null); setAnalysis(null) }}
               >
                 <div style={s.cardTop}>
                   <div style={s.cardTitle}>{opp.title}</div>
-                  <div style={{
-                    ...s.scoreBadge,
-                    color: sc.color,
-                    background: sc.bg,
-                  }}>{opp.score}</div>
+                  <div style={{ ...s.scoreBadge, color: sc.color, background: sc.bg }}>
+                    {opp.score}
+                  </div>
                 </div>
                 <div style={s.cardMeta}>
                   <span style={s.metaItem}>{opp.agency}</span>
@@ -235,11 +270,13 @@ Keep it sharp, confident, and specific to this opportunity.`
               <div style={{ fontSize: '28px', marginBottom: '12px' }}>◈</div>
               <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1a18' }}>Select an opportunity</div>
               <div style={{ fontSize: '12px', color: '#8a8880', marginTop: '6px' }}>
-                Click any contract to see details and generate a capability statement
+                Click any contract to see details, analyze margin, and generate a capability statement
               </div>
             </div>
           ) : (
             <div style={s.detailContent}>
+
+              {/* Score + SAM link */}
               <div style={s.detailScoreRow}>
                 <div style={{
                   ...s.detailScore,
@@ -248,18 +285,15 @@ Keep it sharp, confident, and specific to this opportunity.`
                 }}>
                   Score: {selected.score}/100
                 </div>
-                <a
-                  href={selected.sam_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={s.samLink}
-                >
+                <a href={selected.sam_url} target="_blank" rel="noopener noreferrer" style={s.samLink}>
                   View on SAM.gov ↗
                 </a>
               </div>
 
+              {/* Title */}
               <div style={s.detailTitle}>{selected.title}</div>
 
+              {/* Score reasons */}
               {selected.score_reasons.length > 0 && (
                 <div style={s.reasonsBox}>
                   {selected.score_reasons.map((r, i) => (
@@ -268,7 +302,7 @@ Keep it sharp, confident, and specific to this opportunity.`
                 </div>
               )}
 
-              {/* Contract value highlight */}
+              {/* Contract value */}
               {selected.contract_value && (
                 <div style={s.valueBox}>
                   <div style={s.valueLabel}>CONTRACT VALUE</div>
@@ -279,6 +313,7 @@ Keep it sharp, confident, and specific to this opportunity.`
                 </div>
               )}
 
+              {/* Details grid */}
               <div style={s.detailGrid}>
                 {[
                   ['Agency', selected.agency],
@@ -313,21 +348,118 @@ Keep it sharp, confident, and specific to this opportunity.`
                 <div style={s.attachBox}>
                   <div style={s.descLabel}>DOCUMENTS & ATTACHMENTS</div>
                   {selected.attachments.map((att, i) => (
-                    <a
-                      key={i}
-                      href={att.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={s.attachLink}
-                    >
+                    <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" style={s.attachLink}>
                       ↓ {att.name}
                     </a>
                   ))}
                 </div>
               )}
 
+              {/* MARGIN ANALYSIS BUTTON */}
               <button
-                style={s.draftBtn}
+                style={{
+                  ...s.analyzeBtn,
+                  background: analyzeLoading ? '#4a4840' : '#2d6a4f',
+                }}
+                onClick={() => analyzeMargin(selected)}
+                disabled={analyzeLoading}
+              >
+                {analyzeLoading ? '◎ Searching supplier prices...' : '$ Analyze Margin & Suppliers'}
+              </button>
+
+              {/* ANALYSIS RESULTS */}
+              {analysis && (
+                <div style={s.analysisBox}>
+
+                  {/* Verdict banner */}
+                  <div style={{
+                    ...s.verdictBanner,
+                    background: analysis.verdict === 'BID' ? '#2d6a4f' :
+                                analysis.verdict === 'NO BID' ? '#c0392b' : '#8a6a00'
+                  }}>
+                    <div style={s.verdictLabel}>{analysis.verdict}</div>
+                    <div style={s.verdictReason}>{analysis.verdict_reason}</div>
+                  </div>
+
+                  {/* Margin numbers */}
+                  <div style={s.marginGrid}>
+                    <div style={s.marginCell}>
+                      <div style={s.marginCellLabel}>Unit Cost</div>
+                      <div style={s.marginCellValue}>
+                        {analysis.estimated_unit_cost ? `$${Number(analysis.estimated_unit_cost).toFixed(2)}` : '—'}
+                      </div>
+                    </div>
+                    <div style={s.marginCell}>
+                      <div style={s.marginCellLabel}>Bid Price</div>
+                      <div style={s.marginCellValue}>
+                        {analysis.recommended_bid_price ? `$${Number(analysis.recommended_bid_price).toFixed(2)}` : '—'}
+                      </div>
+                    </div>
+                    <div style={s.marginCell}>
+                      <div style={s.marginCellLabel}>Margin %</div>
+                      <div style={{
+                        ...s.marginCellValue,
+                        color: analysis.estimated_margin_pct >= 20 ? '#2d6a4f' :
+                               analysis.estimated_margin_pct >= 10 ? '#8a6a00' : '#c0392b'
+                      }}>
+                        {analysis.estimated_margin_pct ? `${Number(analysis.estimated_margin_pct).toFixed(1)}%` : '—'}
+                      </div>
+                    </div>
+                    <div style={s.marginCell}>
+                      <div style={s.marginCellLabel}>Total Margin</div>
+                      <div style={{ ...s.marginCellValue, color: '#2d6a4f' }}>
+                        {analysis.estimated_total_margin ? `$${Number(analysis.estimated_total_margin).toLocaleString()}` : '—'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Suppliers */}
+                  {analysis.top_suppliers && analysis.top_suppliers.length > 0 && (
+                    <div style={s.suppliersBox}>
+                      <div style={s.analysisLabel}>TOP SUPPLIERS</div>
+                      {analysis.top_suppliers.map((sup, i) => (
+                        <div key={i} style={s.supplierRow}>
+                          <div style={s.supplierName}>{sup.name}</div>
+                          <div style={s.supplierPrice}>
+                            {sup.price ? `$${Number(sup.price).toFixed(2)}/unit` : 'Check site'}
+                          </div>
+                          {sup.url && (
+                            <a href={sup.url} target="_blank" rel="noopener noreferrer" style={s.supplierLink}>
+                              View ↗
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Risks */}
+                  {analysis.risks && analysis.risks.length > 0 && (
+                    <div style={s.risksBox}>
+                      <div style={s.analysisLabel}>RISKS</div>
+                      {analysis.risks.map((r, i) => (
+                        <div key={i} style={s.riskItem}>⚠ {r}</div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Next steps */}
+                  {analysis.next_steps && analysis.next_steps.length > 0 && (
+                    <div style={s.nextStepsBox}>
+                      <div style={s.analysisLabel}>NEXT STEPS</div>
+                      {analysis.next_steps.map((step, i) => (
+                        <div key={i} style={s.nextStepItem}>
+                          <span style={s.stepNum}>{i + 1}</span> {step}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Capability statement button */}
+              <button
+                style={{ ...s.draftBtn, marginTop: '8px' }}
                 onClick={() => generateDraft(selected)}
                 disabled={draftLoading}
               >
@@ -338,14 +470,12 @@ Keep it sharp, confident, and specific to this opportunity.`
                 <div style={s.draftBox}>
                   <div style={s.draftLabel}>CAPABILITY STATEMENT DRAFT</div>
                   <div style={s.draftContent}>{draft}</div>
-                  <button
-                    style={s.copyBtn}
-                    onClick={() => navigator.clipboard.writeText(draft)}
-                  >
+                  <button style={s.copyBtn} onClick={() => navigator.clipboard.writeText(draft)}>
                     Copy to clipboard
                   </button>
                 </div>
               )}
+
             </div>
           )}
         </div>
@@ -417,10 +547,68 @@ const s = {
   detailTitle: { fontSize: '18px', fontWeight: '600', color: '#1a1a18', lineHeight: '1.4', marginBottom: '16px' },
   reasonsBox: { background: '#f0f7f0', border: '1px solid #b7ddb8', padding: '12px 16px', marginBottom: '20px' },
   reason: { fontSize: '12px', color: '#2d6a4f', marginBottom: '4px', lineHeight: '1.5' },
+  valueBox: { background: '#1a1a18', padding: '16px 20px', marginBottom: '20px' },
+  valueLabel: { fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em', color: '#4a4840', marginBottom: '6px' },
+  valueAmount: { fontSize: '28px', fontWeight: '700', color: '#c8a96e', letterSpacing: '-0.02em' },
+  valueAwardee: { fontSize: '11px', color: '#8a8880', marginTop: '4px' },
   detailGrid: { marginBottom: '24px' },
   detailRow: { display: 'flex', gap: '16px', padding: '8px 0', borderBottom: '1px solid #e8e4dc' },
   detailLabel: { fontSize: '11px', color: '#8a8880', width: '120px', flexShrink: 0, paddingTop: '1px' },
   detailValue: { fontSize: '12px', color: '#1a1a18', flex: 1, lineHeight: '1.5' },
+  descBox: { background: '#fff', border: '1px solid #e8e4dc', padding: '16px 20px', marginBottom: '16px' },
+  descLabel: { fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em', color: '#aaa89f', marginBottom: '10px' },
+  descContent: {
+    fontSize: '12px', color: '#4a4840', lineHeight: '1.8',
+    whiteSpace: 'pre-wrap', maxHeight: '200px', overflowY: 'auto',
+  },
+  attachBox: { background: '#fff', border: '1px solid #e8e4dc', padding: '16px 20px', marginBottom: '16px' },
+  attachLink: {
+    display: 'block', fontSize: '12px', color: '#1a4060', textDecoration: 'none',
+    padding: '4px 0', borderBottom: '1px solid #f0ede6', lineHeight: '1.8',
+  },
+  analyzeBtn: {
+    width: '100%', padding: '12px', color: '#fff', border: 'none',
+    fontSize: '13px', fontWeight: '500', cursor: 'pointer',
+    fontFamily: "'DM Sans', Arial, sans-serif", marginBottom: '8px',
+  },
+  analysisBox: { border: '1px solid #e8e4dc', marginBottom: '16px', overflow: 'hidden' },
+  verdictBanner: { padding: '14px 20px' },
+  verdictLabel: { fontSize: '16px', fontWeight: '700', color: '#fff', letterSpacing: '0.05em' },
+  verdictReason: { fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '3px' },
+  marginGrid: {
+    display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
+    borderBottom: '1px solid #e8e4dc', background: '#fff',
+  },
+  marginCell: { padding: '14px 16px', borderRight: '1px solid #e8e4dc' },
+  marginCellLabel: {
+    fontSize: '9px', fontWeight: '600', letterSpacing: '0.08em',
+    color: '#aaa89f', textTransform: 'uppercase', marginBottom: '4px',
+  },
+  marginCellValue: { fontSize: '18px', fontWeight: '700', color: '#1a1a18' },
+  suppliersBox: { padding: '14px 20px', background: '#fff', borderBottom: '1px solid #e8e4dc' },
+  analysisLabel: {
+    fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em',
+    color: '#aaa89f', marginBottom: '8px', textTransform: 'uppercase',
+  },
+  supplierRow: {
+    display: 'flex', alignItems: 'center', gap: '12px',
+    padding: '6px 0', borderBottom: '1px solid #f0ede6',
+  },
+  supplierName: { fontSize: '12px', color: '#1a1a18', flex: 1 },
+  supplierPrice: { fontSize: '12px', fontWeight: '600', color: '#2d6a4f' },
+  supplierLink: { fontSize: '11px', color: '#1a4060', textDecoration: 'none' },
+  risksBox: { padding: '14px 20px', background: '#fffbf5', borderBottom: '1px solid #e8e4dc' },
+  riskItem: { fontSize: '12px', color: '#8a6a00', marginBottom: '4px', lineHeight: '1.5' },
+  nextStepsBox: { padding: '14px 20px', background: '#fff' },
+  nextStepItem: {
+    display: 'flex', gap: '10px', fontSize: '12px', color: '#1a1a18',
+    marginBottom: '6px', lineHeight: '1.5', alignItems: 'flex-start',
+  },
+  stepNum: {
+    background: '#1a1a18', color: '#fff', fontSize: '10px', fontWeight: '700',
+    width: '18px', height: '18px', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', flexShrink: 0, borderRadius: '2px',
+  },
   draftBtn: {
     width: '100%', padding: '12px', background: '#1a1a18', color: '#fff',
     border: 'none', fontSize: '13px', fontWeight: '500', cursor: 'pointer',
@@ -433,39 +621,5 @@ const s = {
     padding: '7px 14px', fontSize: '11px', background: '#faf9f6',
     border: '1px solid #e8e4dc', color: '#4a4840', cursor: 'pointer',
     fontFamily: "'DM Sans', Arial, sans-serif",
-  },
-  valueBox: {
-    background: '#1a1a18', padding: '16px 20px', marginBottom: '20px',
-  },
-  valueLabel: {
-    fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em',
-    color: '#4a4840', marginBottom: '6px',
-  },
-  valueAmount: {
-    fontSize: '28px', fontWeight: '700', color: '#c8a96e', letterSpacing: '-0.02em',
-  },
-  valueAwardee: {
-    fontSize: '11px', color: '#8a8880', marginTop: '4px',
-  },
-  descBox: {
-    background: '#fff', border: '1px solid #e8e4dc',
-    padding: '16px 20px', marginBottom: '16px',
-  },
-  descLabel: {
-    fontSize: '9px', fontWeight: '600', letterSpacing: '0.1em',
-    color: '#aaa89f', marginBottom: '10px',
-  },
-  descContent: {
-    fontSize: '12px', color: '#4a4840', lineHeight: '1.8',
-    whiteSpace: 'pre-wrap', maxHeight: '200px', overflowY: 'auto',
-  },
-  attachBox: {
-    background: '#fff', border: '1px solid #e8e4dc',
-    padding: '16px 20px', marginBottom: '16px',
-  },
-  attachLink: {
-    display: 'block', fontSize: '12px', color: '#1a4060',
-    textDecoration: 'none', padding: '4px 0',
-    borderBottom: '1px solid #f0ede6', lineHeight: '1.8',
   },
 }

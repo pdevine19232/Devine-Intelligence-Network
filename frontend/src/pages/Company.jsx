@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
+
 export default function Company({ session }) {
   const { ticker } = useParams()
   const navigate = useNavigate()
