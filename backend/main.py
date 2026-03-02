@@ -205,7 +205,9 @@ def get_contracts(
     user=Depends(get_current_user)
 ):
     try:
-        from contracts import get_opportunities
+        from contracts import get_opportunities, SAM_API_KEY
+        if not SAM_API_KEY:
+            raise HTTPException(status_code=500, detail="SAM_API_KEY not configured in .env")
         opportunities = get_opportunities(
             naics_filter=naics,
             set_aside_filter=set_aside,
@@ -213,6 +215,8 @@ def get_contracts(
             days_back=days_back
         )
         return {"opportunities": opportunities, "count": len(opportunities)}
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()

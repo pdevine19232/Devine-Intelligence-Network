@@ -52,6 +52,8 @@ export default function Contracts({ session }) {
   const [analyzeLoading, setAnalyzeLoading] = useState(false)
   const [analysis, setAnalysis] = useState(null)
   const [analyzeError, setAnalyzeError] = useState(null)
+  const [apiWarning, setApiWarning] = useState(null)
+  const [cacheInfo, setCacheInfo] = useState(null)
 
   const getToken = async () => {
     const { data: { session: s } } = await supabase.auth.getSession()
@@ -61,6 +63,7 @@ export default function Contracts({ session }) {
   const fetchContracts = async () => {
     setLoading(true)
     setError(null)
+    setApiWarning(null)
     setSelected(null)
     setDraft(null)
     setAnalysis(null)
@@ -77,13 +80,27 @@ export default function Contracts({ session }) {
         { headers: { 'Authorization': `Bearer ${token}` } }
       )
       const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.detail || `Server error (${res.status})`)
+        return
+      }
+
       if (data.opportunities) {
         setOpportunities(data.opportunities)
-      } else {
-        setError('Failed to load opportunities')
       }
+
+      // Show API warning (rate limit, stale cache, etc.) but still show data
+      if (data.error) {
+        setApiWarning(data.error)
+      }
+
+      if (data.opportunities?.length === 0 && !data.error) {
+        setError('No opportunities found. Try adjusting filters.')
+      }
+
     } catch (err) {
-      setError('Connection error')
+      setError('Connection error — is the backend running?')
       console.error(err)
     } finally {
       setLoading(false)
@@ -220,6 +237,22 @@ Search for current supplier pricing for the specific products requested. Calcula
           Search
         </button>
       </div>
+
+      {apiWarning && (
+        <div style={{
+          padding: '10px 28px',
+          background: '#fffbeb',
+          borderBottom: '1px solid #f0dca0',
+          fontSize: '12px',
+          color: '#8a6a00',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          <span>⚠</span>
+          <span>{apiWarning}</span>
+        </div>
+      )}
 
       <div style={s.body}>
         {/* OPPORTUNITY LIST */}
