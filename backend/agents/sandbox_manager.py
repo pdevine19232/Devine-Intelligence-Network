@@ -25,9 +25,31 @@ load_dotenv()
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", str(Path(__file__).parent.parent.parent))
 WORKSPACE_ROOT = Path(__file__).parent.parent / "agent_workspace"
 SANDBOX_PORT = int(os.getenv("SANDBOX_PORT", "8001"))
+PREVIEW_BACKEND_PORT  = 8001
+PREVIEW_FRONTEND_PORT = 3001
 
 # Track running sandbox processes: { task_id: subprocess.Popen }
 _running_sandboxes: dict = {}
+
+# Track running isolated preview processes: { task_id: {"frontend": Popen, ...} }
+_running_previews: dict = {}
+
+
+def _link_dir(source: Path, target: Path):
+    """
+    Create a directory junction (Windows) or symlink (Unix) for node_modules.
+    Windows directory junctions do NOT require admin — unlike symlinks.
+    """
+    import platform
+    if platform.system() == "Windows":
+        result = subprocess.run(
+            ["cmd", "/c", "mklink", "/J", str(target), str(source)],
+            capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            raise RuntimeError(result.stderr.strip())
+    else:
+        os.symlink(source, target)
 
 
 def _force_remove(func, path, exc_info):
@@ -231,112 +253,187 @@ def get_sandbox_status(task_id: str) -> dict:
     return {"running": False, "port": SANDBOX_PORT}
 
 
-# Track which tasks have an active frontend preview
-_active_previews: dict = {}
-
-
 def preview_frontend_changes(task_id: str, project_root: str = None) -> dict:
     """
-    Temporarily apply the Builder's frontend file changes to your live
-    frontend/src so you can see them at localhost:3000 immediately.
-
-    A backup of the original files is saved so restore_frontend_preview()
-    can undo everything cleanly.
+    Start a FULLY ISOLATED preview of the Builder's changes:
+      - Backend copy runs on port 8001
+      - React frontend copy runs on port 3001
+    The live app (ports 3000 + 8000) and its files are NEVER touched.
+    Call restore_frontend_preview() to kill both preview processes.
     """
     root = Path(project_root or PROJECT_ROOT)
     workspace_dir = WORKSPACE_ROOT / task_id
-    frontend_src = root / "frontend" / "src"
-    backup_dir = workspace_dir / "frontend_preview_backup"
+    frontend_dir = root / "frontend"
+    frontend_sandbox = workspace_dir / "frontend_sandbox"
 
-    if not frontend_src.exists():
-        return {"error": f"Could not find your frontend/src folder at: {frontend_src}"}
+    if not frontend_dir.exists():
+        return {"error": f"Could not find frontend folder at: {frontend_dir}"}
 
     if not workspace_dir.exists():
         return {"error": "No workspace found — run the Builder first"}
 
-    # Back up the current frontend/src so we can restore it later
-    if backup_dir.exists():
-        shutil.rmtree(backup_dir, onerror=_force_remove)
-    shutil.copytree(frontend_src, backup_dir)
-    print(f"[Preview] Backed up frontend/src to {backup_dir}")
+    # Stop any existing preview for this task first
+    restore_frontend_preview(task_id, project_root)
 
-    # Find and apply any frontend files the Builder wrote
+    # ── 1. Start backend sandbox on port 8001 ─────────────────────────────
+    backend_result = start_sandbox(task_id, project_root, port=PREVIEW_BACKEND_PORT)
+    if "error" in backend_result:
+        return {"error": f"Backend preview failed: {backend_result['error']}"}
+    print(f"[Preview] Backend sandbox started on port {PREVIEW_BACKEND_PORT}")
+
+    # ── 2. Copy frontend into workspace (excluding node_modules/build) ────
+    if frontend_sandbox.exists():
+        shutil.rmtree(frontend_sandbox, onerror=_force_remove)
+    frontend_sandbox.mkdir(parents=True)
+
+    shutil.copytree(
+        frontend_dir,
+        frontend_sandbox,
+        dirs_exist_ok=True,
+        ignore=shutil.ignore_patterns("node_modules", "build", ".git", "*.log")
+    )
+    print(f"[Preview] Copied frontend to {frontend_sandbox}")
+
+    # ── 3. Link node_modules from original (avoids copying 500MB) ─────────
+    original_nm = frontend_dir / "node_modules"
+    sandbox_nm  = frontend_sandbox / "node_modules"
+    if original_nm.exists() and not sandbox_nm.exists():
+        try:
+            _link_dir(original_nm, sandbox_nm)
+            print(f"[Preview] Linked node_modules via junction")
+        except Exception as e:
+            print(f"[Preview] Junction failed ({e}), falling back to copy (slow)...")
+            shutil.copytree(original_nm, sandbox_nm)
+
+    # ── 4. Apply Builder's frontend files on top ──────────────────────────
     applied = []
     for builder_file in workspace_dir.rglob("*"):
         if builder_file.is_dir():
             continue
-
         rel = builder_file.relative_to(workspace_dir)
         parts = rel.parts
 
-        # Skip non-source files
-        if parts[0] in ("sandbox", "frontend_preview_backup", "plan.json",
+        if parts[0] in ("sandbox", "frontend_sandbox", "plan.json",
                         "manifest.json", "teacher_report.md"):
+            continue
+        if builder_file.suffix not in {".jsx", ".js", ".ts", ".tsx", ".css"}:
             continue
 
         dest = None
-
-        # Handle: frontend/src/pages/Foo.jsx
-        if parts[0] == "frontend" and len(parts) > 2 and parts[1] == "src":
-            dest = frontend_src / Path(*parts[2:])
-
-        # Handle: frontend/src/Foo.jsx (no pages/ subfolder)
-        elif parts[0] == "frontend" and len(parts) > 1:
-            dest = frontend_src / Path(*parts[1:])
-
-        # Handle: src/pages/Foo.jsx (no frontend/ prefix)
+        if parts[0] == "frontend" and len(parts) > 1:
+            dest = frontend_sandbox / Path(*parts[1:])
         elif parts[0] == "src":
-            dest = frontend_src / Path(*parts[1:])
+            dest = frontend_sandbox / "src" / Path(*parts[1:])
 
-        if dest and builder_file.suffix in {".jsx", ".js", ".ts", ".tsx", ".css"}:
+        if dest:
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(builder_file, dest)
             applied.append(str(rel))
-            print(f"[Preview] Applied {rel} → {dest}")
+            print(f"[Preview] Applied {rel}")
 
-    _active_previews[task_id] = str(backup_dir)
+    # ── 5. Point sandbox frontend at port 8001 instead of 8000 ───────────
+    sandbox_src = frontend_sandbox / "src"
+    if sandbox_src.exists():
+        for f in sandbox_src.rglob("*"):
+            if f.is_file() and f.suffix in {".js", ".jsx", ".ts", ".tsx"}:
+                try:
+                    content = f.read_text(encoding="utf-8", errors="ignore")
+                    if "localhost:8000" in content:
+                        f.write_text(
+                            content.replace("localhost:8000", f"localhost:{PREVIEW_BACKEND_PORT}"),
+                            encoding="utf-8"
+                        )
+                except Exception:
+                    pass
 
-    if not applied:
-        # Restore backup since nothing was applied
-        shutil.rmtree(frontend_src, onerror=_force_remove)
-        shutil.copytree(backup_dir, frontend_src)
-        return {
-            "previewing": False,
-            "error": "No frontend files found in this task's workspace. This task may only have backend changes — use the Diff tab to review instead."
+    # ── 6. Start React on port 3001 ───────────────────────────────────────
+    npm_cmd = "npm.cmd" if os.name == "nt" else "npm"
+    env = os.environ.copy()
+    env["PORT"]    = str(PREVIEW_FRONTEND_PORT)
+    env["BROWSER"] = "none"
+
+    try:
+        npm_proc = subprocess.Popen(
+            [npm_cmd, "start"],
+            cwd=str(frontend_sandbox),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        _running_previews[task_id] = {
+            "frontend":         npm_proc,
+            "frontend_port":    PREVIEW_FRONTEND_PORT,
+            "backend_port":     PREVIEW_BACKEND_PORT,
         }
+        print(f"[Preview] React starting on port {PREVIEW_FRONTEND_PORT} (PID {npm_proc.pid})")
+    except Exception as e:
+        stop_sandbox(task_id)
+        return {"error": f"Failed to start React preview: {e}"}
 
     return {
-        "previewing": True,
-        "url": "http://localhost:3000",
-        "files_applied": applied,
-        "message": f"Applied {len(applied)} file(s). Refresh localhost:3000 to see the changes."
+        "previewing":     True,
+        "frontend_url":   f"http://localhost:{PREVIEW_FRONTEND_PORT}",
+        "backend_url":    f"http://localhost:{PREVIEW_BACKEND_PORT}",
+        "files_applied":  applied,
+        "message":        f"Preview starting — React takes ~20 seconds to compile. Backend on :{PREVIEW_BACKEND_PORT}, frontend on :{PREVIEW_FRONTEND_PORT}.",
     }
 
 
 def restore_frontend_preview(task_id: str, project_root: str = None) -> dict:
     """
-    Restore frontend/src back to what it was before preview_frontend_changes().
-    Call this when the user clicks Restore Original or Reject.
+    Kill the isolated preview processes (ports 3001 + 8001).
+    The live app on 3000 + 8000 is completely untouched.
     """
-    root = Path(project_root or PROJECT_ROOT)
-    workspace_dir = WORKSPACE_ROOT / task_id
-    frontend_src = root / "frontend" / "src"
-    backup_dir = workspace_dir / "frontend_preview_backup"
+    stopped_frontend = False
+    stopped_backend  = False
 
-    if not backup_dir.exists():
-        return {"restored": False, "error": "No backup found — preview may not have been started"}
+    if task_id in _running_previews:
+        preview = _running_previews.pop(task_id)
+        proc = preview.get("frontend")
+        if proc:
+            try:
+                if os.name == "nt":
+                    # taskkill /T kills the process tree (npm spawns child node processes)
+                    subprocess.run(
+                        ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                        capture_output=True
+                    )
+                else:
+                    proc.terminate()
+                    proc.wait(timeout=5)
+                stopped_frontend = True
+                print(f"[Preview] Killed React preview (PID {proc.pid})")
+            except Exception as e:
+                print(f"[Preview] Error killing React: {e}")
 
-    if frontend_src.exists():
-        shutil.rmtree(frontend_src, onerror=_force_remove)
-    shutil.copytree(backup_dir, frontend_src)
-
-    _active_previews.pop(task_id, None)
-    print(f"[Preview] Restored frontend/src from backup")
+    stopped_backend = stop_sandbox(task_id)
 
     return {
-        "restored": True,
-        "message": "Frontend restored. Refresh localhost:3000 to see the original."
+        "restored":          True,
+        "stopped_frontend":  stopped_frontend,
+        "stopped_backend":   stopped_backend,
+        "message":           "Preview stopped. Your live app on localhost:3000 is unchanged.",
     }
+
+
+def get_preview_status(task_id: str) -> dict:
+    """Check if the isolated preview is currently running."""
+    if task_id not in _running_previews:
+        return {"previewing": False}
+
+    preview = _running_previews[task_id]
+    proc    = preview.get("frontend")
+
+    if proc and proc.poll() is None:
+        return {
+            "previewing":   True,
+            "frontend_url": f"http://localhost:{preview['frontend_port']}",
+            "backend_url":  f"http://localhost:{preview['backend_port']}",
+        }
+    else:
+        _running_previews.pop(task_id, None)
+        return {"previewing": False}
 
 
 def get_file_diff(task_id: str, project_root: str = None) -> list:

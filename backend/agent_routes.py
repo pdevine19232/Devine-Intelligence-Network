@@ -202,6 +202,16 @@ def sandbox_status(task_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/task/{task_id}/preview/status")
+def preview_status(task_id: str, user=Depends(get_current_user)):
+    """Check if the isolated preview (port 3001) is running for this task."""
+    try:
+        from agents.sandbox_manager import get_preview_status
+        return get_preview_status(task_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/task/{task_id}/preview")
 def preview_task(task_id: str, user=Depends(require_admin)):
     """

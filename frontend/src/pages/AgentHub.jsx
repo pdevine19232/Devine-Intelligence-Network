@@ -548,7 +548,8 @@ function TaskDetail({ taskId, token, onClose, onApprove, onReject }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [actionResult, setActionResult] = useState(null);
-  const [sandboxStatus, setSandboxStatus] = useState(null);
+  const [previewStatus, setPreviewStatus] = useState(null);  // null | {previewing, frontend_url}
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -572,6 +573,41 @@ function TaskDetail({ taskId, token, onClose, onApprove, onReject }) {
     }, 5000);
     return () => clearInterval(interval);
   }, [load, task?.status]);
+
+  const handleStartPreview = async () => {
+    setPreviewLoading(true);
+    try {
+      const res = await fetch(`${API}/agents/task/${taskId}/preview`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.previewing) {
+        setPreviewStatus(data);
+      } else {
+        setPreviewStatus({ previewing: false, error: data.error || data.detail || "Preview failed to start" });
+      }
+    } catch (e) {
+      setPreviewStatus({ previewing: false, error: e.message });
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleStopPreview = async () => {
+    setPreviewLoading(true);
+    try {
+      await fetch(`${API}/agents/task/${taskId}/restore-preview`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPreviewStatus({ previewing: false });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const handleApprove = async () => {
     if (!window.confirm("Apply all Builder changes to your live project? Python changes will need a server restart.")) return;
@@ -646,18 +682,108 @@ function TaskDetail({ taskId, token, onClose, onApprove, onReject }) {
         <button onClick={onClose} style={{ background: "none", border: "none", color: COLORS.muted, fontSize: 20, cursor: "pointer" }}>×</button>
       </div>
 
-      {/* Sandbox bar */}
-      {(task.status === "review" || task.sandbox_pid) && (
-        <div style={{ background: COLORS.blue, padding: "10px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 13, color: "#c8d8e8" }}>
-            Preview on{" "}
-            <a href={`http://localhost:${sandboxPort}`} target="_blank" rel="noreferrer"
-              style={{ color: COLORS.gold, fontFamily: "Courier New, monospace" }}>
-              http://localhost:{sandboxPort}
-            </a>
-            {" "}— point your frontend to this port to test
+      {/* Preview bar */}
+      {canReview && (
+        <>
+          <div style={{
+            background: COLORS.blue,
+            padding: "12px 28px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 16,
+          }}>
+            <div style={{ fontSize: 13, color: "#c8d8e8", flex: 1 }}>
+              {previewStatus?.previewing ? (
+                <>
+                  Preview running on{" "}
+                  <a href={previewStatus.frontend_url} target="_blank" rel="noreferrer"
+                    style={{ color: COLORS.gold, fontFamily: "Courier New, monospace" }}>
+                    {previewStatus.frontend_url}
+                  </a>
+                  {" "}— test your changes, then approve or reject below
+                </>
+              ) : (
+                "Test in an isolated preview (port 3001) before making changes live"
+              )}
+              {previewStatus?.error && (
+                <span style={{ color: "#ff9980", marginLeft: 12 }}>⚠ {previewStatus.error}</span>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+              {previewStatus?.previewing ? (
+                <>
+                  <a
+                    href={previewStatus.frontend_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      background: COLORS.gold,
+                      color: COLORS.dark,
+                      padding: "8px 16px",
+                      borderRadius: 3,
+                      fontFamily: "Courier New, monospace",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      textDecoration: "none",
+                    }}
+                  >
+                    OPEN PREVIEW →
+                  </a>
+                  <button
+                    onClick={handleStopPreview}
+                    disabled={previewLoading}
+                    style={{
+                      background: "none",
+                      color: "#ff9980",
+                      border: "1px solid #ff9980",
+                      padding: "8px 16px",
+                      borderRadius: 3,
+                      fontFamily: "Courier New, monospace",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      cursor: previewLoading ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    ■ STOP PREVIEW
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleStartPreview}
+                  disabled={previewLoading}
+                  style={{
+                    background: previewLoading ? COLORS.muted : COLORS.gold,
+                    color: COLORS.dark,
+                    border: "none",
+                    padding: "8px 20px",
+                    borderRadius: 3,
+                    fontFamily: "Courier New, monospace",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    cursor: previewLoading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {previewLoading ? "STARTING..." : "▶ START PREVIEW"}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+          {previewStatus?.previewing && (
+            <div style={{
+              background: "#1a3550",
+              padding: "6px 28px",
+              fontSize: 11,
+              color: "#4a7a9a",
+              fontFamily: "Courier New, monospace",
+            }}>
+              ⏱ React takes ~20 sec to compile. Backend: localhost:8001 · Frontend: localhost:3001 · Live app unchanged: localhost:3000
+            </div>
+          )}
+        </>
       )}
 
       {/* Action result */}
@@ -713,7 +839,7 @@ function TaskDetail({ taskId, token, onClose, onApprove, onReject }) {
       </div>
 
       {/* Approve / Reject */}
-      {canReview && !actionResult?.type === "success" && (
+      {canReview && !(actionResult?.type === "success") && (
         <div style={{
           position: "sticky",
           bottom: 0,
