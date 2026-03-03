@@ -9,3 +9,8 @@ node_modules/
 dist/
 build/
 .DS_Store
+
+# Agent system — large/binary/transient files
+backend/agent_workspace/
+backend/agent_tasks.db
+*.bak

@@ -237,6 +237,47 @@ def stop_sandbox(task_id: str) -> bool:
     return False
 
 
+def cleanup_sandbox(task_id: str) -> bool:
+    """
+    Atomically stop the sandbox process and clean up associated resources.
+    Does not fail if sandbox is already stopped or doesn't exist.
+    
+    Returns True if cleanup was successful, False if sandbox doesn't exist.
+    """
+    try:
+        # Stop the sandbox process
+        stopped = stop_sandbox(task_id)
+        
+        # Clean up the sandbox workspace directory
+        try:
+            workspace_dir = WORKSPACE_ROOT / task_id
+            if workspace_dir.exists():
+                shutil.rmtree(workspace_dir, onerror=_force_remove)
+                print(f"[Sandbox] Cleaned up workspace for task {task_id}")
+        except Exception as e:
+            print(f"[Sandbox] Warning: Failed to clean workspace for task {task_id}: {e}")
+        
+        # Clean up preview processes if any exist for this task
+        if task_id in _running_previews:
+            preview_info = _running_previews.pop(task_id)
+            for key, proc in preview_info.items():
+                if proc and isinstance(proc, subprocess.Popen):
+                    try:
+                        proc.terminate()
+                        proc.wait(timeout=5)
+                    except Exception:
+                        try:
+                            proc.kill()
+                        except Exception:
+                            pass
+            print(f"[Sandbox] Stopped preview processes for task {task_id}")
+        
+        return True
+    except Exception as e:
+        print(f"[Sandbox] Error during cleanup_sandbox for task {task_id}: {e}")
+        return False
+
+
 def get_sandbox_status(task_id: str) -> dict:
     """Check if sandbox is running and return status info."""
     if task_id in _running_sandboxes:
@@ -249,268 +290,212 @@ def get_sandbox_status(task_id: str) -> dict:
                 "url": f"http://localhost:{SANDBOX_PORT}",
             }
         else:
-            # Process ended
+            # Process is dead, clean up the tracking
             _running_sandboxes.pop(task_id, None)
+            return {
+                "running": False,
+                "pid": None,
+                "port": SANDBOX_PORT,
+            }
 
-    return {"running": False, "port": SANDBOX_PORT}
+    return {
+        "running": False,
+        "pid": None,
+        "port": SANDBOX_PORT,
+    }
+
+
+def get_preview_status(task_id: str) -> dict:
+    """Check if preview frontend is running."""
+    if task_id in _running_previews:
+        preview_info = _running_previews[task_id]
+        frontend_proc = preview_info.get("frontend")
+        if frontend_proc and frontend_proc.poll() is None:
+            return {
+                "running": True,
+                "port": PREVIEW_FRONTEND_PORT,
+                "url": f"http://localhost:{PREVIEW_FRONTEND_PORT}",
+            }
+        else:
+            _running_previews.pop(task_id, None)
+            return {"running": False}
+
+    return {"running": False}
+
+
+def get_file_diff(task_id: str, project_root: str) -> list:
+    """
+    Compare Builder's files against the live project.
+    Return list of { "file": str, "type": "added|modified|deleted", "diff": str }
+    """
+    workspace_dir = WORKSPACE_ROOT / task_id
+    root = Path(project_root)
+
+    diffs = []
+
+    # Scan all files in workspace
+    for builder_file in workspace_dir.rglob("*"):
+        if builder_file.is_dir():
+            continue
+
+        rel = builder_file.relative_to(workspace_dir)
+        parts = rel.parts
+
+        # Skip meta files
+        if parts[0] in ("sandbox", "plan.json", "manifest.json", "teacher_report.md"):
+            continue
+
+        # Build target path
+        if parts[0] == "backend":
+            target_rel = Path(*parts[1:])
+            target_path = root / "backend" / target_rel
+        else:
+            target_path = root / rel
+
+        # Determine type: added, modified, deleted
+        if not target_path.exists():
+            diff_type = "added"
+            diff_text = f"New file:\n{builder_file.read_text(errors='ignore')[:500]}"
+        else:
+            new_content = builder_file.read_text(errors='ignore')
+            old_content = target_path.read_text(errors='ignore')
+            if new_content == old_content:
+                continue  # No change
+            else:
+                diff_type = "modified"
+                diff_text = f"Modified (first 500 chars):\n{new_content[:500]}"
+
+        diffs.append({
+            "file": str(rel),
+            "type": diff_type,
+            "diff": diff_text,
+        })
+
+    return diffs
 
 
 def preview_frontend_changes(task_id: str, project_root: str = None) -> dict:
     """
-    Start a FULLY ISOLATED preview of the Builder's changes:
-      - Backend copy runs on port 8001
-      - React frontend copy runs on port 3001
-    The live app (ports 3000 + 8000) and its files are NEVER touched.
-    Call restore_frontend_preview() to kill both preview processes.
+    Start a temporary frontend dev server (port 3001) with Builder's changes applied.
+    User can test the UI before approving.
     """
-    root = Path(project_root or PROJECT_ROOT)
     workspace_dir = WORKSPACE_ROOT / task_id
-    frontend_dir = root / "frontend"
-    frontend_sandbox = workspace_dir / "frontend_sandbox"
+    root = Path(project_root or PROJECT_ROOT)
+    frontend_src = root / "frontend"
 
-    if not frontend_dir.exists():
-        return {"error": f"Could not find frontend folder at: {frontend_dir}"}
+    if not frontend_src.exists():
+        return {"error": "Frontend directory not found"}
 
     if not workspace_dir.exists():
         return {"error": "No workspace found — run the Builder first"}
 
-    # Stop any existing preview for this task first
-    restore_frontend_preview(task_id, project_root)
-
-    # ── 1. Start backend sandbox on port 8001 ─────────────────────────────
-    backend_result = start_sandbox(task_id, project_root, port=PREVIEW_BACKEND_PORT)
-    if "error" in backend_result:
-        return {"error": f"Backend preview failed: {backend_result['error']}"}
-    print(f"[Preview] Backend sandbox started on port {PREVIEW_BACKEND_PORT}")
-
-    # ── 2. Copy frontend into workspace (excluding node_modules/build) ────
-    if frontend_sandbox.exists():
-        shutil.rmtree(frontend_sandbox, onerror=_force_remove)
-    frontend_sandbox.mkdir(parents=True)
-
-    shutil.copytree(
-        frontend_dir,
-        frontend_sandbox,
-        dirs_exist_ok=True,
-        ignore=shutil.ignore_patterns("node_modules", "build", ".git", "*.log")
-    )
-    print(f"[Preview] Copied frontend to {frontend_sandbox}")
-
-    # ── 3. Link node_modules from original (avoids copying 500MB) ─────────
-    original_nm = frontend_dir / "node_modules"
-    sandbox_nm  = frontend_sandbox / "node_modules"
-    if original_nm.exists() and not sandbox_nm.exists():
-        try:
-            _link_dir(original_nm, sandbox_nm)
-            print(f"[Preview] Linked node_modules via junction")
-        except Exception as e:
-            print(f"[Preview] Junction failed ({e}), falling back to copy (slow)...")
-            shutil.copytree(original_nm, sandbox_nm)
-
-    # ── 4. Apply Builder's frontend files on top ──────────────────────────
-    applied = []
-    for builder_file in workspace_dir.rglob("*"):
-        if builder_file.is_dir():
-            continue
-        rel = builder_file.relative_to(workspace_dir)
-        parts = rel.parts
-
-        if parts[0] in ("sandbox", "frontend_sandbox", "plan.json",
-                        "manifest.json", "teacher_report.md"):
-            continue
-        if builder_file.suffix not in {".jsx", ".js", ".ts", ".tsx", ".css"}:
-            continue
-
-        dest = None
-        if parts[0] == "frontend" and len(parts) > 1:
-            dest = frontend_sandbox / Path(*parts[1:])
-        elif parts[0] == "src":
-            dest = frontend_sandbox / "src" / Path(*parts[1:])
-
-        if dest:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(builder_file, dest)
-            applied.append(str(rel))
-            print(f"[Preview] Applied {rel}")
-
-    # ── 5. Point sandbox frontend at port 8001 instead of 8000 ───────────
-    sandbox_src = frontend_sandbox / "src"
-    if sandbox_src.exists():
-        for f in sandbox_src.rglob("*"):
-            if f.is_file() and f.suffix in {".js", ".jsx", ".ts", ".tsx"}:
-                try:
-                    content = f.read_text(encoding="utf-8", errors="ignore")
-                    if "localhost:8000" in content:
-                        f.write_text(
-                            content.replace("localhost:8000", f"localhost:{PREVIEW_BACKEND_PORT}"),
-                            encoding="utf-8"
-                        )
-                except Exception:
-                    pass
-
-    # ── 6. Start React on port 3001 ───────────────────────────────────────
-    npm_cmd = "npm.cmd" if os.name == "nt" else "npm"
-    env = os.environ.copy()
-    env["PORT"]    = str(PREVIEW_FRONTEND_PORT)
-    env["BROWSER"] = "none"
-    env["CI"]      = "true"   # Prevents interactive prompts from react-scripts
+    # Stop any existing preview for this task
+    restore_preview(task_id)
 
     try:
-        # IMPORTANT: Do NOT use subprocess.PIPE for stdout/stderr without reading it —
-        # React's compilation output fills the pipe buffer and deadlocks the process.
-        npm_log = frontend_sandbox / "preview.log"
+        # ── 1. Create isolated frontend copy ──────────────────────────────────
+        preview_dir = workspace_dir / "frontend_sandbox"
+        if preview_dir.exists():
+            shutil.rmtree(preview_dir, onerror=_force_remove)
+        preview_dir.mkdir(parents=True, exist_ok=True)
+
+        shutil.copytree(
+            frontend_src,
+            preview_dir,
+            dirs_exist_ok=True,
+            ignore=shutil.ignore_patterns("node_modules", ".next", "dist", ".git", "*.log")
+        )
+        print(f"[Preview] Copied frontend to {preview_dir}")
+
+        # ── 2. Link node_modules from original (avoids copying 500 MB) ────────
+        original_nm = frontend_src / "node_modules"
+        sandbox_nm = preview_dir / "node_modules"
+        if original_nm.exists() and not sandbox_nm.exists():
+            try:
+                _link_dir(original_nm, sandbox_nm)
+                print(f"[Preview] Linked node_modules via junction")
+            except Exception as e:
+                print(f"[Preview] Junction failed ({e}), copying node_modules (slow)...")
+                shutil.copytree(original_nm, sandbox_nm)
+
+        # ── 3. Apply Builder's frontend files on top ──────────────────────────
+        applied = []
+        for builder_file in workspace_dir.rglob("*"):
+            if builder_file.is_dir():
+                continue
+            rel = builder_file.relative_to(workspace_dir)
+            parts = rel.parts
+
+            if parts[0] in ("sandbox", "frontend_sandbox", "plan.json",
+                            "manifest.json", "teacher_report.md"):
+                continue
+            if builder_file.suffix not in {".jsx", ".js", ".ts", ".tsx", ".css"}:
+                continue
+
+            dest = None
+            if parts[0] == "frontend" and len(parts) > 1:
+                dest = preview_dir / Path(*parts[1:])
+            elif parts[0] == "src":
+                dest = preview_dir / "src" / Path(*parts[1:])
+
+            if dest:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(builder_file, dest)
+                applied.append(str(rel))
+                print(f"[Preview] Applied {rel}")
+
+        # ── 4. Start React on port 3001 ───────────────────────────────────────
+        # IMPORTANT: use a log file, NOT subprocess.PIPE.
+        # React produces hundreds of KB of compile output. If you pipe it and
+        # don't read, the OS pipe buffer fills up and the process deadlocks.
+        npm_cmd = "npm.cmd" if os.name == "nt" else "npm"
+        npm_log = preview_dir / "preview.log"
         npm_log_file = open(npm_log, "w", encoding="utf-8")
+
+        env = os.environ.copy()
+        env["PORT"]    = str(PREVIEW_FRONTEND_PORT)
+        env["BROWSER"] = "none"
+        env["CI"]      = "true"   # prevents interactive prompts from react-scripts
+
         npm_proc = subprocess.Popen(
             [npm_cmd, "start"],
-            cwd=str(frontend_sandbox),
+            cwd=str(preview_dir),
             env=env,
             stdout=npm_log_file,
             stderr=npm_log_file,
         )
         _running_previews[task_id] = {
-            "frontend":         npm_proc,
-            "frontend_port":    PREVIEW_FRONTEND_PORT,
-            "backend_port":     PREVIEW_BACKEND_PORT,
+            "frontend":      npm_proc,
+            "frontend_port": PREVIEW_FRONTEND_PORT,
         }
         print(f"[Preview] React starting on port {PREVIEW_FRONTEND_PORT} (PID {npm_proc.pid})")
-    except Exception as e:
-        stop_sandbox(task_id)
-        return {"error": f"Failed to start React preview: {e}"}
 
-    return {
-        "previewing":     True,
-        "frontend_url":   f"http://localhost:{PREVIEW_FRONTEND_PORT}",
-        "backend_url":    f"http://localhost:{PREVIEW_BACKEND_PORT}",
-        "files_applied":  applied,
-        "message":        f"Preview starting — React takes ~20 seconds to compile. Backend on :{PREVIEW_BACKEND_PORT}, frontend on :{PREVIEW_FRONTEND_PORT}.",
-    }
-
-
-def restore_frontend_preview(task_id: str, project_root: str = None) -> dict:
-    """
-    Kill the isolated preview processes (ports 3001 + 8001).
-    The live app on 3000 + 8000 is completely untouched.
-    """
-    stopped_frontend = False
-    stopped_backend  = False
-
-    if task_id in _running_previews:
-        preview = _running_previews.pop(task_id)
-        proc = preview.get("frontend")
-        if proc:
-            try:
-                if os.name == "nt":
-                    # taskkill /T kills the process tree (npm spawns child node processes)
-                    subprocess.run(
-                        ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
-                        capture_output=True
-                    )
-                else:
-                    proc.terminate()
-                    proc.wait(timeout=5)
-                stopped_frontend = True
-                print(f"[Preview] Killed React preview (PID {proc.pid})")
-            except Exception as e:
-                print(f"[Preview] Error killing React: {e}")
-
-    stopped_backend = stop_sandbox(task_id)
-
-    return {
-        "restored":          True,
-        "stopped_frontend":  stopped_frontend,
-        "stopped_backend":   stopped_backend,
-        "message":           "Preview stopped. Your live app on localhost:3000 is unchanged.",
-    }
-
-
-def get_preview_status(task_id: str) -> dict:
-    """Check if the isolated preview is currently running."""
-    if task_id not in _running_previews:
-        return {"previewing": False}
-
-    preview = _running_previews[task_id]
-    proc    = preview.get("frontend")
-
-    if proc and proc.poll() is None:
         return {
-            "previewing":   True,
-            "frontend_url": f"http://localhost:{preview['frontend_port']}",
-            "backend_url":  f"http://localhost:{preview['backend_port']}",
+            "previewing":    True,
+            "frontend_url":  f"http://localhost:{PREVIEW_FRONTEND_PORT}",
+            "files_applied": applied,
+            "message":       f"Preview starting — React takes ~20 seconds to compile. Open localhost:{PREVIEW_FRONTEND_PORT} once ready.",
         }
-    else:
-        _running_previews.pop(task_id, None)
-        return {"previewing": False}
+
+    except Exception as e:
+        print(f"[Preview] Failed to start: {e}")
+        return {"error": str(e)}
 
 
-def get_file_diff(task_id: str, project_root: str = None) -> list:
-    """
-    Return a list of file diffs between current project and Builder's workspace.
+def restore_preview(task_id: str) -> dict:
+    """Stop and clean up the preview frontend."""
+    if task_id in _running_previews:
+        preview_info = _running_previews.pop(task_id)
+        frontend_proc = preview_info.get("frontend")
+        if frontend_proc:
+            try:
+                frontend_proc.terminate()
+                frontend_proc.wait(timeout=5)
+            except Exception:
+                try:
+                    frontend_proc.kill()
+                except Exception:
+                    pass
 
-    Returns:
-        [
-          {
-            "path": "backend/main.py",
-            "action": "create" | "modify",
-            "old_content": "...",  # None for create
-            "new_content": "...",
-            "additions": 15,
-            "deletions": 3,
-          },
-          ...
-        ]
-    """
-    import difflib
-
-    root = Path(project_root or PROJECT_ROOT)
-    workspace_dir = WORKSPACE_ROOT / task_id
-
-    if not workspace_dir.exists():
-        return []
-
-    diffs = []
-
-    for new_file in workspace_dir.rglob("*"):
-        if new_file.is_dir():
-            continue
-        if new_file.suffix not in {".py", ".jsx", ".js", ".ts", ".tsx"}:
-            continue
-
-        rel_parts = new_file.relative_to(workspace_dir).parts
-        if rel_parts[0] in ("sandbox",):
-            continue
-        if new_file.name in ("plan.json", "manifest.json", "teacher_report.md"):
-            continue
-
-        rel_path = str(new_file.relative_to(workspace_dir))
-        new_content = new_file.read_text(encoding="utf-8", errors="ignore")
-
-        # Find existing file
-        current_file = root / rel_path
-        if not current_file.exists():
-            # Also try with backend/ prefix
-            if not rel_path.startswith("backend/"):
-                current_file = root / "backend" / rel_path
-
-        if current_file.exists():
-            old_content = current_file.read_text(encoding="utf-8", errors="ignore")
-            action = "modify"
-        else:
-            old_content = ""
-            action = "create"
-
-        # Count additions/deletions
-        old_lines = old_content.splitlines(keepends=True)
-        new_lines = new_content.splitlines(keepends=True)
-        additions = sum(1 for d in difflib.ndiff(old_lines, new_lines) if d.startswith("+ "))
-        deletions = sum(1 for d in difflib.ndiff(old_lines, new_lines) if d.startswith("- "))
-
-        diffs.append({
-            "path": rel_path,
-            "action": action,
-            "old_content": old_content if action == "modify" else None,
-            "new_content": new_content,
-            "additions": additions,
-            "deletions": deletions,
-        })
-
-    return sorted(diffs, key=lambda d: d["path"])
+    print(f"[Preview] Restored live frontend (stopped preview)")
+    return {"restored": True}

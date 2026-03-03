@@ -227,10 +227,6 @@ def preview_task(task_id: str, user=Depends(require_admin)):
 
         from agents.sandbox_manager import preview_frontend_changes
         result = preview_frontend_changes(task_id=task_id, project_root=PROJECT_ROOT)
-
-        if result.get("error") and not result.get("previewing"):
-            raise HTTPException(status_code=400, detail=result["error"])
-
         return result
     except HTTPException:
         raise
@@ -239,13 +235,11 @@ def preview_task(task_id: str, user=Depends(require_admin)):
 
 
 @router.post("/task/{task_id}/restore-preview")
-def restore_task_preview(task_id: str, user=Depends(require_admin)):
-    """
-    Restore the frontend back to its original state after a preview.
-    """
+def restore_preview(task_id: str, user=Depends(require_admin)):
+    """Stop the isolated preview (port 3001) for this task."""
     try:
-        from agents.sandbox_manager import restore_frontend_preview
-        result = restore_frontend_preview(task_id=task_id, project_root=PROJECT_ROOT)
+        from agents.sandbox_manager import restore_preview as _restore
+        result = _restore(task_id=task_id)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -253,28 +247,77 @@ def restore_task_preview(task_id: str, user=Depends(require_admin)):
 
 @router.delete("/task/{task_id}")
 def delete_agent_task(task_id: str, user=Depends(require_admin)):
-    """Delete a task and its workspace directory."""
+    """
+    Delete a single task and clean up its sandbox process.
+    Returns success status with task details.
+    """
     try:
-        import shutil
-        from pathlib import Path
-        from agents.task_manager import delete_task, get_task
+        from agents.task_manager import get_task, delete_task
         from agents.sandbox_manager import stop_sandbox as _stop
 
         task = get_task(task_id)
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
-        # Stop sandbox if running
-        _stop(task_id)
+        # Stop the sandbox if it's running
+        if task.get("sandbox_pid"):
+            try:
+                _stop(task_id)
+            except Exception as e:
+                # Log but don't fail if sandbox stop fails
+                import traceback
+                traceback.print_exc()
 
-        # Delete workspace
-        workspace = Path(__file__).parent / "agent_workspace" / task_id
-        if workspace.exists():
-            shutil.rmtree(workspace)
-
+        # Delete the task from database
         delete_task(task_id)
-        return {"deleted": True, "task_id": task_id}
+
+        return {
+            "status": "deleted",
+            "task_id": task_id,
+            "title": task.get("title"),
+            "message": f"Task '{task.get('title')}' has been deleted"
+        }
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/tasks")
+def delete_all_agent_tasks(user=Depends(require_admin)):
+    """
+    Delete all tasks and clean up all sandbox processes.
+    Returns success status with count of deleted tasks.
+    """
+    try:
+        from agents.task_manager import get_all_tasks, delete_all_tasks
+        from agents.sandbox_manager import stop_sandbox as _stop
+
+        # Get all tasks first to count and clean up sandboxes
+        all_tasks = get_all_tasks()
+        task_count = len(all_tasks)
+
+        # Stop all sandboxes that are running
+        for task in all_tasks:
+            if task.get("sandbox_pid"):
+                try:
+                    _stop(task["id"])
+                except Exception as e:
+                    # Log but don't fail if sandbox stop fails
+                    import traceback
+                    traceback.print_exc()
+
+        # Delete all tasks from database
+        delete_all_tasks()
+
+        return {
+            "status": "deleted_all",
+            "deleted_count": task_count,
+            "message": f"All {task_count} tasks have been deleted"
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

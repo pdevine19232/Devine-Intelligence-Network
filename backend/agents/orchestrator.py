@@ -200,10 +200,53 @@ def _run_pipeline_sync(task_id: str, project_root: str):
 
 # ── Approval Handler ──────────────────────────────────────────────────────────
 
+def _git_snapshot(root: Path, task_id: str, task_title: str) -> str:
+    """
+    Commit and push the current project state to GitHub before applying
+    agent changes.  This replaces .bak files with a proper git history.
+
+    Returns a short status string for logging.  Never raises — approval
+    must proceed even if the snapshot fails.
+    """
+    import subprocess
+
+    def run(cmd):
+        return subprocess.run(
+            cmd, cwd=str(root),
+            capture_output=True, text=True
+        )
+
+    try:
+        # Stage everything (agent_workspace/, *.bak, agent_tasks.db are
+        # now in .gitignore so they won't be included)
+        run(["git", "add", "-A"])
+
+        # Only commit if there is actually something staged
+        diff = run(["git", "diff", "--cached", "--quiet"])
+        if diff.returncode == 0:
+            return "nothing to commit — snapshot skipped"
+
+        msg = f"pre-agent: {task_title} (task {task_id})"
+        commit = run(["git", "commit", "-m", msg])
+        if commit.returncode != 0:
+            return f"commit failed: {commit.stderr.strip()}"
+
+        push = run(["git", "push", "origin", "main"])
+        if push.returncode != 0:
+            return f"push failed (changes still committed locally): {push.stderr.strip()}"
+
+        return f"snapshot pushed — '{msg}'"
+
+    except Exception as e:
+        return f"snapshot error (non-fatal): {e}"
+
+
 def approve_task(task_id: str, project_root: str = None) -> dict:
     """
     Apply the Builder's changes to the live project.
 
+    Before deploying, commits and pushes the current project state to GitHub
+    so you always have a clean rollback point in git history.
     Copies files from agent_workspace/{task_id}/ to the actual project root.
     Returns a dict with what was copied.
     """
@@ -223,6 +266,11 @@ def approve_task(task_id: str, project_root: str = None) -> dict:
 
     workspace_dir = Path(__file__).parent.parent / "agent_workspace" / task_id
     files_written = builder_report.get("files_written", [])
+
+    # ── Snapshot to GitHub before touching any live files ─────────────────
+    snapshot_msg = _git_snapshot(root, task_id, task.get("title", "unknown"))
+    print(f"[Approve] Git snapshot: {snapshot_msg}")
+
     deployed = []
     errors = []
 
@@ -238,11 +286,6 @@ def approve_task(task_id: str, project_root: str = None) -> dict:
             continue
 
         try:
-            # Backup existing file
-            if dest.exists():
-                backup = dest.with_suffix(dest.suffix + ".bak")
-                shutil.copy2(dest, backup)
-
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dest)
             deployed.append(path)

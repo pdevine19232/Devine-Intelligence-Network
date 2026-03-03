@@ -113,9 +113,76 @@ def update_task(task_id: str, **kwargs):
     conn.close()
 
 
-def delete_task(task_id: str):
+def delete_task(task_id: str) -> dict:
+    """
+    Delete a single task by ID.
+    Returns a dict with deletion status and sandbox_pid if present.
+    """
     init_db()
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("DELETE FROM agent_tasks WHERE id = ?", (task_id,))
-    conn.commit()
-    conn.close()
+    
+    try:
+        # First, fetch the task to get sandbox_pid if it exists
+        task = get_task(task_id)
+        if not task:
+            return {
+                "success": False,
+                "message": "Task not found",
+                "task_id": task_id,
+                "sandbox_pid": None
+            }
+        
+        sandbox_pid = task.get("sandbox_pid")
+        
+        # Delete the task from database
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM agent_tasks WHERE id = ?", (task_id,))
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": f"Task {task_id} deleted successfully",
+            "task_id": task_id,
+            "sandbox_pid": sandbox_pid
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Error deleting task: {str(e)}",
+            "task_id": task_id,
+            "sandbox_pid": None
+        }
+
+
+def delete_all_tasks() -> dict:
+    """
+    Delete all tasks from the database.
+    Returns a dict with deletion count and list of sandbox_pids.
+    """
+    init_db()
+    
+    try:
+        # Fetch all tasks to collect sandbox_pids
+        all_tasks = get_all_tasks()
+        sandbox_pids = [t.get("sandbox_pid") for t in all_tasks if t.get("sandbox_pid")]
+        count = len(all_tasks)
+        
+        # Delete all tasks from database
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM agent_tasks")
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": f"Deleted {count} task(s) successfully",
+            "count": count,
+            "sandbox_pids": sandbox_pids
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Error deleting all tasks: {str(e)}",
+            "count": 0,
+            "sandbox_pids": []
+        }

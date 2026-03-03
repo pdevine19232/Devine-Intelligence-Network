@@ -567,10 +567,14 @@ function TaskDetail({ taskId, token, onClose, onApprove, onReject }) {
 
   useEffect(() => {
     load();
-    // Poll while running
+    // Poll until the task reaches a terminal state.
+    // Previously only polled when status === "running", which meant the UI
+    // would get permanently stuck on "pending" because nothing would trigger
+    // the transition to "running" in the frontend.
+    const DONE = ["review", "approved", "rejected", "error"];
     const interval = setInterval(() => {
-      if (task?.status === "running") load();
-    }, 5000);
+      if (!task || !DONE.includes(task.status)) load();
+    }, 4000);
     return () => clearInterval(interval);
   }, [load, task?.status]);
 

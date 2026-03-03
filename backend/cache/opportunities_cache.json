@@ -1,0 +1,1054 @@
+{
+  "cached_at": "2026-03-03T10:13:37.713654",
+  "filters": {
+    "days_back": 30
+  },
+  "count": 25,
+  "opportunities": [
+    {
+      "id": "f94bfaa0791847028b3f9cb1b1278dbd",
+      "title": "53--NUT,PLAIN,HEXAGON",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "Mar 11, 2026",
+      "days_left": 7,
+      "naics": "332722",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "SPE4A626T871R",
+      "contact_email": "DibbsBSM@dla.mil",
+      "contact_name": "Questions regarding this solicitation should be emailed to the buyer listed in block 5 of the solicitation document which can be found under the Additional Information link.\nIf the Additional Information link does not work, please go to https://www.dibbs.bsm.dla.mil/Solicitations/ and type the solicitation number in the Global Search box.\n",
+      "score": 100,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))",
+        "7 days to respond \u2014 good timeline",
+        "NAICS 332722 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f94bfaa0791847028b3f9cb1b1278dbd/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f945befe5f4e439c8947d1705df3e78d",
+      "title": "28--GUIDE,VALVE STEM",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "Mar 16, 2026",
+      "days_left": 12,
+      "naics": "333618",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "SPE7L126T165U",
+      "contact_email": "DibbsBSM@dla.mil",
+      "contact_name": "Questions regarding this solicitation should be emailed to the buyer listed in block 5 of the solicitation document which can be found under the Additional Information link.\nIf the Additional Information link does not work, please go to https://www.dibbs.bsm.dla.mil/Solicitations/ and type the solicitation number in the Global Search box.\n",
+      "score": 100,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))",
+        "12 days to respond \u2014 good timeline",
+        "NAICS 333618 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f945befe5f4e439c8947d1705df3e78d/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f4ec39c5ffff4585b681473ca5257464",
+      "title": "43--PUMP UNIT,ROTARY",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "Mar 10, 2026",
+      "days_left": 6,
+      "naics": "333914",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "SPE7M126Q0688",
+      "contact_email": "DibbsBSM@dla.mil",
+      "contact_name": "Questions regarding this solicitation should be emailed to the buyer listed in block 5 of the solicitation document which can be found under the Additional Information link.\nIf the Additional Information link does not work, please go to https://www.dibbs.bsm.dla.mil/Solicitations/ and type the solicitation number in the Global Search box.\n",
+      "score": 95,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))",
+        "Only 6 days left \u2014 tight",
+        "NAICS 333914 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f4ec39c5ffff4585b681473ca5257464/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f5dd578f528a40a3b01c3ff836f9bd6c",
+      "title": "Ceilometers",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-09T06:00:00-07:00",
+      "days_left": null,
+      "naics": "334516",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "W911S226U2712",
+      "contact_email": "teri.j.street.civ@army.mil",
+      "contact_name": "Teri Street",
+      "score": 90,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))",
+        "NAICS 334516 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f5dd578f528a40a3b01c3ff836f9bd6c/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f553566d4e4c477499ae7d09c0b4996a",
+      "title": "R425--FY26 Services (Base only) - Albany VAMC Lockout  Tagout/Energy Control Procedures",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-04T12:00:00-05:00",
+      "days_left": null,
+      "naics": "541330",
+      "set_aside": "Service-Disabled Veteran-Owned Small Business Set Aside",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "36C24226Q0284",
+      "contact_email": "nathan.northrup@va.gov",
+      "contact_name": "Nathan Northrup",
+      "score": 90,
+      "score_reasons": [
+        "Small business set-aside (Service-Disabled Veteran-Owned Small Business Set Aside)",
+        "NAICS 541330 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f553566d4e4c477499ae7d09c0b4996a/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/1738b273893a48d69fd961e62c4bb279/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/29ee76322e8046a997a2a64a09a857a3/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/3745698c540c4112bd3e13cff904b977/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/a2e68b74a1d44c439b6ce35ae4f437fe/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/db7fd599dd6f4a02b39361e82e97c0a3/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/dc949b21f7ca4dce9a4b850c39d23f92/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/fc58ff5a1df748c5afcb7ea87cebae4d/download"
+        }
+      ],
+      "location": "Albany, NY"
+    },
+    {
+      "id": "f922797acdbf4210bd997837535c4ccc",
+      "title": "53--ANODE,CORROSION PRE",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "Mar 16, 2026",
+      "days_left": 12,
+      "naics": "332510",
+      "set_aside": null,
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "SPE7M226T2849",
+      "contact_email": "DibbsBSM@dla.mil",
+      "contact_name": "Questions regarding this solicitation should be emailed to the buyer listed in block 5 of the solicitation document which can be found under the Additional Information link.\nIf the Additional Information link does not work, please go to https://www.dibbs.bsm.dla.mil/Solicitations/ and type the solicitation number in the Global Search box.\n",
+      "score": 85,
+      "score_reasons": [
+        "12 days to respond \u2014 good timeline",
+        "NAICS 332510 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f922797acdbf4210bd997837535c4ccc/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f473d745c7b5439ba24c2590e47c24ae",
+      "title": "59--SWITCH,PRESSURE",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "Mar 16, 2026",
+      "days_left": 12,
+      "naics": "332919",
+      "set_aside": null,
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "SPE7M226T2846",
+      "contact_email": "DibbsBSM@dla.mil",
+      "contact_name": "Questions regarding this solicitation should be emailed to the buyer listed in block 5 of the solicitation document which can be found under the Additional Information link.\nIf the Additional Information link does not work, please go to https://www.dibbs.bsm.dla.mil/Solicitations/ and type the solicitation number in the Global Search box.\n",
+      "score": 85,
+      "score_reasons": [
+        "12 days to respond \u2014 good timeline",
+        "NAICS 332919 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/f473d745c7b5439ba24c2590e47c24ae/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "efe553b841d4479184f1a43695199f3b",
+      "title": "Lost River Ranger District Janitorial",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-17T10:00:00-06:00",
+      "days_left": null,
+      "naics": "561720",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "1240LS26Q0017",
+      "contact_email": "arlen.fausett@usda.gov",
+      "contact_name": "Whit Fausett",
+      "score": 80,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/efe553b841d4479184f1a43695199f3b/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/2e6e083243ee4c519cfbf489ab3e2bef/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/3e1ef09e16dc4b20b365d60122e55209/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/459185be7a2b46308e4bb612bd2f0322/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/7267e5c486a24c90a8017c476df75023/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/e6933067f402476eb82c58c132073be1/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/f4b3187c0c264bbcb0627b95201688fc/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/f58cc7ff4f39478fb9e7b63fc1dd7379/download"
+        }
+      ],
+      "location": "Mackay, ID"
+    },
+    {
+      "id": "e74b8f485fcf4c9891c000e48330e3ae",
+      "title": "RIK Dozer Transport Trailer for Apalachicola NF",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-16T17:00:00-04:00",
+      "days_left": null,
+      "naics": "336212",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Solicitation",
+      "solicitation_number": "12444126Q0019",
+      "contact_email": "thomas.wolterman@usda.gov",
+      "contact_name": "Thomas Wolterman",
+      "score": 80,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))",
+        "NAICS 336212 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/e74b8f485fcf4c9891c000e48330e3ae/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/0fd2b86d6bfb4ebf8dd318e34f55a6ea/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/74f2d6587d1d48e09d305ae6bf2b07a9/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/8a865576a877442484f75a88f6f9db1c/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/bb63d3fc4e234191b904a6653d552b4d/download"
+        }
+      ],
+      "location": "Tallahassee, FL"
+    },
+    {
+      "id": "ea242550c61a4a99b237dd94085880f8",
+      "title": "54--POST,JUNCTION,SPAN,",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "Mar 10, 2026",
+      "days_left": 6,
+      "naics": "333998",
+      "set_aside": null,
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "SPE8ED26Q0351",
+      "contact_email": "DibbsBSM@dla.mil",
+      "contact_name": "Questions regarding this solicitation should be emailed to the buyer listed in block 5 of the solicitation document which can be found under the Additional Information link.\nIf the Additional Information link does not work, please go to https://www.dibbs.bsm.dla.mil/Solicitations/ and type the solicitation number in the Global Search box.\n",
+      "score": 75,
+      "score_reasons": [
+        "Only 6 days left \u2014 tight",
+        "NAICS 333998 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/ea242550c61a4a99b237dd94085880f8/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "ff7f4ab02e164c78a34ed5e9b6027cfa",
+      "title": "HandySCAN Black Elite System",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-18T17:00:00-04:00",
+      "days_left": null,
+      "naics": "334519",
+      "set_aside": "No Set aside used",
+      "type": "Combined Synopsis/Solicitation",
+      "solicitation_number": "MB476094",
+      "contact_email": "MBRYAN@BNL.GOV",
+      "contact_name": "MARK BRYAN",
+      "score": 70,
+      "score_reasons": [
+        "NAICS 334519 matches target sector",
+        "Combined synopsis \u2014 streamlined response"
+      ],
+      "sam_url": "https://sam.gov/opp/ff7f4ab02e164c78a34ed5e9b6027cfa/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/17e1bcdaf1e442a6a8abf2b8e97cd9b4/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/20f5ee31dca6408e94dbb77ee2ab3c61/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/5098a1f9a78648b1b0220e70ec416db7/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/595347aa86c8475f86bd813d7d6ebf39/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/abe2b9b4bc5c4780b82c06729a04465e/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/abf82a53d2554de0b99a23245ccc4d93/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/d552a58da24a4d98ab856e309d3438e9/download"
+        }
+      ],
+      "location": "Upton, NY"
+    },
+    {
+      "id": "f0f3e83c2d0c44c198037794ec790bfc",
+      "title": "Airshow Buses 2026",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-16T14:00:00-04:00",
+      "days_left": null,
+      "naics": "485510",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Solicitation",
+      "solicitation_number": "FA480326Q0008",
+      "contact_email": "maria_del_mar.rodriguez_martinez@us.af.mil",
+      "contact_name": "Mar Rodriguez",
+      "score": 70,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))"
+      ],
+      "sam_url": "https://sam.gov/opp/f0f3e83c2d0c44c198037794ec790bfc/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/34d2d4010dac4dd1b8a66cc7367e0d5b/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/4be45bca490c46038c7338ebf6897081/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/cf94d47277a748309436bf53df5e79b0/download"
+        }
+      ],
+      "location": "Charleston AFB, SC"
+    },
+    {
+      "id": "ecab65148b884b7baff9f98b0422a565",
+      "title": "KY- Green River NWR Deconstruction and Mold Remed.",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-27T10:00:00-04:00",
+      "days_left": null,
+      "naics": "562910",
+      "set_aside": "Total Small Business Set-Aside (FAR 19.5)",
+      "type": "Solicitation",
+      "solicitation_number": "140FC126Q0009",
+      "contact_email": "adam_graham@fws.gov",
+      "contact_name": "Graham, Adam",
+      "score": 70,
+      "score_reasons": [
+        "Small business set-aside (Total Small Business Set-Aside (FAR 19.5))"
+      ],
+      "sam_url": "https://sam.gov/opp/ecab65148b884b7baff9f98b0422a565/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/2c89c67c207b4568aa76050827a024a0/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/5fecc9748fa9421a9c47ae720db5d49a/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/86923da93ca349b1bd0fb90850c4dee1/download"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "f9f2076f19064163b019f953aa8a4ba3",
+      "title": "GEARSHAFT,HELICAL",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-13T16:30:00-04:00",
+      "days_left": null,
+      "naics": "333613",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "N0010425QXE41",
+      "contact_email": "CHARLES.T.MILLER3@NAVY.MIL",
+      "contact_name": "Telephone: 7176052564",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 333613 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/f9f2076f19064163b019f953aa8a4ba3/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f8f428b960394c0fbed383b07e448384",
+      "title": "CIRCUIT CARD ASSY",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-23T16:30:00-04:00",
+      "days_left": null,
+      "naics": "334412",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "SPRMM126QKB45",
+      "contact_email": "CERRILL.MCMEEKIN@DLA.MIL",
+      "contact_name": "Electronic Mail: CERRILL.MCMEEKIN@DLA.MIL",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 334412 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/f8f428b960394c0fbed383b07e448384/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "f832a660d25a4c5f940d1407285a3af6",
+      "title": "CONTROLLER ASSEMBLY, N00383-26-Q-B066",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-10T14:00:00-04:00",
+      "days_left": null,
+      "naics": "336413",
+      "set_aside": "No Set aside used",
+      "type": "Solicitation",
+      "solicitation_number": "N00383-26-Q-B066",
+      "contact_email": "devon.m.mcnamee.civ@us.navy.mil",
+      "contact_name": "Telephone: 215-917-2782",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 336413 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/f832a660d25a4c5f940d1407285a3af6/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/ee2a44bd503a4ab6b7212c229899d6f4/download"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "f01c0774b11f481eb7a4646a98116737",
+      "title": "48--SEAT AND PISTON",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-04-02T16:30:00-04:00",
+      "days_left": null,
+      "naics": "332919",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "N0010426QBM76",
+      "contact_email": "REBECCA.AGLOW@NAVY.MIL",
+      "contact_name": "Telephone: 7712290088",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 332919 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/f01c0774b11f481eb7a4646a98116737/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "ef909d89099242b495558627eacc0388",
+      "title": "Next Generation Aerospace Ground Equipment (NGAGE)",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-10T17:00:00-04:00",
+      "days_left": null,
+      "naics": "336413",
+      "set_aside": "No Set aside used",
+      "type": "Solicitation",
+      "solicitation_number": "FA853226RB001",
+      "contact_email": "kimberly.janssen@us.af.mil",
+      "contact_name": "Kimberly Janssen",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 336413 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/ef909d89099242b495558627eacc0388/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/39736bb5fa974b47af7714b593458169/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/4e903030e86249808877a8d72d24625f/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/56a7678fde4d47bea2f815d2543ebece/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/5b6e3a45ec2740ac8c8c9393ea70dab0/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/6557ae3f2cdb45079486f102870c5c98/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/751ffbc34fb9498f9fc5fcec262b7a6d/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/773905d415a14aa7a9d3432006b0b0e2/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/7a01b6aa4f15410e8ba4ea7541965aca/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/acce56227c6346638952fab33d661bad/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/bd3a28b35ac14c19ace1e79211101c67/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/c20b9c49c35b4233ad39718141cff3cd/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/c2e01b63fec44d9da61a2e0b149aeb5d/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/e2fcb8c9a6fc4550bdcaae106f7fd483/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/f018613c6c2843cd8ba5ac786b791936/download"
+        }
+      ],
+      "location": "Warner Robins, GA"
+    },
+    {
+      "id": "eee8f63280614da19c846357443ab992",
+      "title": "VALVE,REGULATING,FL",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-13T16:30:00-04:00",
+      "days_left": null,
+      "naics": "332919",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "N0010426QTA93",
+      "contact_email": "NOAH.R.KUNTZ2.CIV@US.NAVY.MIL",
+      "contact_name": "Telephone: 7712291871",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 332919 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/eee8f63280614da19c846357443ab992/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "ecca34c2bc61445dac0d8dd15e6ee011",
+      "title": "CONVERTER,FREQUENCY",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-04-02T16:30:00-04:00",
+      "days_left": null,
+      "naics": "334290",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "N0010426QSB45",
+      "contact_email": "DESIREE.MEYERS@NAVY.MIL",
+      "contact_name": "Telephone: 7176052369",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 334290 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/ecca34c2bc61445dac0d8dd15e6ee011/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "ea4eccd291274e58b283e36b574438d7",
+      "title": "SCUTTLE,MRN,RAISED",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-06T16:30:00-05:00",
+      "days_left": null,
+      "naics": "336612",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "SPRMM126QMC12",
+      "contact_email": "AMANDA.HELLER@DLA.MIL",
+      "contact_name": "Amanda Heller",
+      "score": 60,
+      "score_reasons": [
+        "NAICS 336612 matches target sector"
+      ],
+      "sam_url": "https://sam.gov/opp/ea4eccd291274e58b283e36b574438d7/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "fe819516ad1e4f1abee2445305638477",
+      "title": "AMERICAN EMBASSY BELGRADE LES SUPPLEMENTAL HEALTH INSURANCE SERVICES",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-31T17:00:00+02:00",
+      "days_left": null,
+      "naics": "524114",
+      "set_aside": null,
+      "type": "Presolicitation",
+      "solicitation_number": "19RB1026R0002",
+      "contact_email": "warfieldms@state.gov",
+      "contact_name": "Michael Warfield",
+      "score": 50,
+      "score_reasons": [],
+      "sam_url": "https://sam.gov/opp/fe819516ad1e4f1abee2445305638477/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/24ea32ff4c674f89bd2740ed8992579b/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/b600fcafa74a474c957cbc6f17763120/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/dfaa24964a6d442aa7486dd3401c655f/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/ec4b9f60b4c148108a86e0c2e5eee162/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/ed06f235dfdf4ffa9ab536d559636621/download"
+        }
+      ],
+      "location": "Belgrade, RS-00"
+    },
+    {
+      "id": "f5a85561ddca474396821c021a1f8647",
+      "title": "Y1DZ--620A4-22-103 Replace Roofs Castle Point",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-03-06T09:45:00-05:00",
+      "days_left": null,
+      "naics": "236220",
+      "set_aside": null,
+      "type": "Solicitation",
+      "solicitation_number": "36C24226B0004",
+      "contact_email": "dany.humphreys2@va.gov",
+      "contact_name": "Dany  Humphreys",
+      "score": 50,
+      "score_reasons": [],
+      "sam_url": "https://sam.gov/opp/f5a85561ddca474396821c021a1f8647/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/08df476083544550bee9afc498b8efb9/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/106a227fc6fe46b4a5dcf24f15a474ba/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/2cc48e1c9b324d5686dafbdd480505f4/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/301499b07f4f4e2cb3e63f8f11e7b5f6/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/465ddde4dafc4834830a46c707218d7f/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/5af74dd44c6b4d5daedad23471c5c445/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/5e9da5babe594fa0a3b359e8d7a00d62/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/64f96145566143af8b143b5be7ed04b6/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/766c2b4fd365480f92882606821085fd/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/7692c41e74bf466491072a4ed9611ce9/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/aa86b37e1ac14020ad08be720261a109/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/b98f2632be1b49fc8139fac55cf32025/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/c2e26c1e4c2648c99aeea0c851fbfde2/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/deb53ff40f84480cb7042505fdcc7d93/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/f5cf25caa1bc4465a1f0c1a80a66b168/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/fa79812719bd4152b06d58e020cbc2d9/download"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "edb85099b4814f748e7d5e640fe0861b",
+      "title": "15--FAIRING,PYLON,AIRCR",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-04-17T00:00:00-04:00",
+      "days_left": null,
+      "naics": null,
+      "set_aside": null,
+      "type": "Presolicitation",
+      "solicitation_number": "N0038326QFA45",
+      "contact_email": "LIAM.F.CUNNINGHAM2.CIV@US.NAVY.MIL",
+      "contact_name": "LIAM F. CUNNINGHAM, N732.76, PHONE (215)697-6525, EMAIL LIAM.F.CUNNINGHAM2.CIV@US.NAVY.MIL",
+      "score": 50,
+      "score_reasons": [],
+      "sam_url": "https://sam.gov/opp/edb85099b4814f748e7d5e640fe0861b/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [],
+      "location": null
+    },
+    {
+      "id": "ea17030176c3479aac86edeb77a96ab4",
+      "title": "REPAIR SERVICES FOR THE JTE PROGRAM",
+      "agency": null,
+      "sub_agency": null,
+      "office": null,
+      "posted_date": "2026-03-03",
+      "deadline": "2026-04-02T16:00:00-06:00",
+      "days_left": null,
+      "naics": "811210",
+      "set_aside": "No Set aside used",
+      "type": "Solicitation",
+      "solicitation_number": "FA825026R0003",
+      "contact_email": "JOHN.PRATHER.3@US.AF.MIL",
+      "contact_name": "JOHN PRATHER",
+      "score": 50,
+      "score_reasons": [],
+      "sam_url": "https://sam.gov/opp/ea17030176c3479aac86edeb77a96ab4/view",
+      "active": true,
+      "contract_value": null,
+      "award_date": null,
+      "awardee": null,
+      "description": null,
+      "attachments": [
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/0423a6a76568444582d66810e5e783e5/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/1477143aba5c45009dc72fa9d0078cc0/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/2debad5c6fe74be7a4a4a1f0e56a92ce/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/3a0a96de1ae24ef4a67158a640841964/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/4602bcba8be845aeaeb75be198201fc1/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/4fc9fae452ab45c98eda55e5b721410c/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/7dd219d472b24f3d91ea3a9fd9591f94/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/9c62ab6acfae43228840b6653dd43f4e/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/b009cbcc0dc6492da60a8706c6a081ba/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/b417315daf5b450180e8d5bc97de9d72/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/c8a268b8eb594d1c86fca8d373242d17/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/cbfb940014c14a7ab644902a0ff49446/download"
+        },
+        {
+          "name": "download",
+          "url": "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/f4965a769aec4cbb8b141e761c0fb6da/download"
+        }
+      ],
+      "location": null
+    }
+  ]
+}
