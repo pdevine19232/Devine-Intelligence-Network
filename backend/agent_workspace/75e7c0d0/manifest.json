@@ -1,0 +1,36 @@
+{
+  "task_id": "75e7c0d0",
+  "task_title": "Clear tasks",
+  "built_at": "2026-03-03T09:32:15.424015",
+  "project_root": "C:\\Users\\patri\\OneDrive\\Desktop\\Devine-Intelligence-Network",
+  "files": [
+    {
+      "path": "backend/agent_routes.py",
+      "action": "modify",
+      "description": "Add two new DELETE endpoints: DELETE /agents/task/{task_id} to delete a single task and clean up its sandbox, and DELETE /agents/tasks to delete all tasks and clean up all sandboxes. Both endpoints require admin auth and return success status with count of deleted items.",
+      "size": 11101,
+      "lines": 323
+    },
+    {
+      "path": "backend/agents/task_manager.py",
+      "action": "modify",
+      "description": "Add delete_task(task_id) function to remove a task record from the database and return deletion status. Add delete_all_tasks() function to remove all task records and return count deleted.",
+      "size": 5244,
+      "lines": 188
+    },
+    {
+      "path": "backend/agents/sandbox_manager.py",
+      "action": "modify",
+      "description": "Add cleanup_sandbox(task_id) function to stop the sandbox process (if running) and perform any necessary cleanup. Ensure atomic operation that doesn't fail if sandbox is already stopped.",
+      "size": 15589,
+      "lines": 481
+    },
+    {
+      "path": "frontend/src/pages/AgentHub.js",
+      "action": "modify",
+      "description": "Add DeleteTaskButton component (inline styled red button, small) for each task row that shows confirmation dialog before calling DELETE /agents/task/{task_id}. Add ClearAllTasksButton at top of task list with confirmation dialog calling DELETE /agents/tasks. Both buttons refresh task list by calling GET /agents/tasks after deletion. Use native window.confirm() for dialogs.",
+      "size": 21575,
+      "lines": 673
+    }
+  ]
+}

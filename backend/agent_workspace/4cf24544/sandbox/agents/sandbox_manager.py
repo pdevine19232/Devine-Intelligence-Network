@@ -168,21 +168,19 @@ def start_sandbox(task_id: str, project_root: str = None, port: int = None) -> d
         return {"error": "Could not find main.py in sandbox directory"}
 
     try:
-        # Start uvicorn as a subprocess.
-        # IMPORTANT: Do NOT use subprocess.PIPE for stdout/stderr without reading it —
-        # the pipe buffer fills up (~64 KB) and the subprocess deadlocks.
-        log_path = sandbox_dir.parent / "sandbox.log"
-        log_file = open(log_path, "w", encoding="utf-8")
+        # Start uvicorn as a subprocess
         process = subprocess.Popen(
             [
                 sys.executable, "-m", "uvicorn",
                 f"{main_file}:app",
                 "--host", "0.0.0.0",
                 "--port", str(actual_port),
+                "--reload",
             ],
             cwd=str(sandbox_dir),
-            stdout=log_file,
-            stderr=log_file,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
         )
 
         _running_sandboxes[task_id] = process
@@ -353,19 +351,15 @@ def preview_frontend_changes(task_id: str, project_root: str = None) -> dict:
     env = os.environ.copy()
     env["PORT"]    = str(PREVIEW_FRONTEND_PORT)
     env["BROWSER"] = "none"
-    env["CI"]      = "true"   # Prevents interactive prompts from react-scripts
 
     try:
-        # IMPORTANT: Do NOT use subprocess.PIPE for stdout/stderr without reading it —
-        # React's compilation output fills the pipe buffer and deadlocks the process.
-        npm_log = frontend_sandbox / "preview.log"
-        npm_log_file = open(npm_log, "w", encoding="utf-8")
         npm_proc = subprocess.Popen(
             [npm_cmd, "start"],
             cwd=str(frontend_sandbox),
             env=env,
-            stdout=npm_log_file,
-            stderr=npm_log_file,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
         )
         _running_previews[task_id] = {
             "frontend":         npm_proc,

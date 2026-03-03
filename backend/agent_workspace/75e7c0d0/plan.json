@@ -1,0 +1,29 @@
+{
+  "plan_summary": "Add DELETE endpoints to clear individual tasks and all tasks in bulk, with atomic cleanup of sandbox processes. Add UI components to AgentHub with confirmation dialogs and inline-styled delete buttons for each task row and a clear-all button at the top.",
+  "needs_research": false,
+  "research_queries": [],
+  "files": [
+    {
+      "path": "backend/agent_routes.py",
+      "action": "modify",
+      "description": "Add two new DELETE endpoints: DELETE /agents/task/{task_id} to delete a single task and clean up its sandbox, and DELETE /agents/tasks to delete all tasks and clean up all sandboxes. Both endpoints require admin auth and return success status with count of deleted items."
+    },
+    {
+      "path": "backend/agents/task_manager.py",
+      "action": "modify",
+      "description": "Add delete_task(task_id) function to remove a task record from the database and return deletion status. Add delete_all_tasks() function to remove all task records and return count deleted."
+    },
+    {
+      "path": "backend/agents/sandbox_manager.py",
+      "action": "modify",
+      "description": "Add cleanup_sandbox(task_id) function to stop the sandbox process (if running) and perform any necessary cleanup. Ensure atomic operation that doesn't fail if sandbox is already stopped."
+    },
+    {
+      "path": "frontend/src/pages/AgentHub.js",
+      "action": "modify",
+      "description": "Add DeleteTaskButton component (inline styled red button, small) for each task row that shows confirmation dialog before calling DELETE /agents/task/{task_id}. Add ClearAllTasksButton at top of task list with confirmation dialog calling DELETE /agents/tasks. Both buttons refresh task list by calling GET /agents/tasks after deletion. Use native window.confirm() for dialogs."
+    }
+  ],
+  "integration_notes": "Backend: task_manager.delete_task and delete_all_tasks will be called from agent_routes endpoints which handle the cleanup_sandbox calls. Frontend: AgentHub component will fetch tasks via GET /agents/tasks in useEffect, then display them in a list. Each row will have a small red delete button triggering confirmation dialog \u2192 DELETE /agents/task/{id} \u2192 refresh task list. A 'Clear All' button at the top of the task list will show confirmation \u2192 DELETE /agents/tasks \u2192 refresh. All styling inline per existing patterns (red color #e74c3c or similar, small button padding 4-8px). After any deletion, immediately call GET /agents/tasks to update state.",
+  "testing_instructions": "1. Start backend and frontend normally. 2. Log in as admin, navigate to /agents AgentHub. 3. Create a test task via 'New Task'. 4. Verify task appears in list. 5. Click red delete button on that task, confirm dialog appears. 6. Confirm deletion, verify task disappears from list and GET /agents/tasks returns updated count. 7. Create 2-3 test tasks. 8. Click 'Clear All Tasks' button at top, confirm dialog appears. 9. Confirm, verify all tasks disappear and count is 0. 10. Verify sandbox processes are cleaned up (no orphaned processes running). 11. Test that deleting task with running sandbox stops the sandbox before deletion. 12. Test that non-admin users cannot access delete endpoints (403 error)."
+}

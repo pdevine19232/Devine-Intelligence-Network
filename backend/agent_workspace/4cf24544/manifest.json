@@ -1,0 +1,29 @@
+{
+  "task_id": "4cf24544",
+  "task_title": "Clear all tasks",
+  "built_at": "2026-03-03T02:01:07.011247",
+  "project_root": "C:\\Users\\patri\\OneDrive\\Desktop\\Devine-Intelligence-Network",
+  "files": [
+    {
+      "path": "backend/agent_routes.py",
+      "action": "modify",
+      "description": "Add two new DELETE endpoints: DELETE /agents/task/{task_id} to delete a single task, and DELETE /agents/tasks to delete all tasks. Both require admin auth. Call task_manager.delete_task() or task_manager.delete_all_tasks() functions.",
+      "size": 11199,
+      "lines": 322
+    },
+    {
+      "path": "backend/agents/task_manager.py",
+      "action": "modify",
+      "description": "Add two new functions: delete_task(task_id) to delete a single task from the database, and delete_all_tasks() to clear all tasks. Both should also clean up associated sandbox directories and any running processes.",
+      "size": 5544,
+      "lines": 204
+    },
+    {
+      "path": "frontend/src/pages/AgentHub.js",
+      "action": "modify",
+      "description": "Add a clear button next to each task in the task list that calls DELETE /agents/task/{task_id}. Add a 'Clear All Tasks' button at the top with confirmation dialog. Both should refresh the task list after successful deletion. Handle loading and error states.",
+      "size": 25176,
+      "lines": 752
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "plan_summary": "Add a DELETE endpoint to clear individual tasks and a DELETE endpoint to clear all tasks. Add clear buttons to the task list UI in AgentHub component that call these endpoints with confirmation dialogs.",
+  "needs_research": false,
+  "research_queries": [],
+  "files": [
+    {
+      "path": "backend/agent_routes.py",
+      "action": "modify",
+      "description": "Add two new DELETE endpoints: DELETE /agents/task/{task_id} to delete a single task, and DELETE /agents/tasks to delete all tasks. Both require admin auth. Call task_manager.delete_task() or task_manager.delete_all_tasks() functions."
+    },
+    {
+      "path": "backend/agents/task_manager.py",
+      "action": "modify",
+      "description": "Add two new functions: delete_task(task_id) to delete a single task from the database, and delete_all_tasks() to clear all tasks. Both should also clean up associated sandbox directories and any running processes."
+    },
+    {
+      "path": "frontend/src/pages/AgentHub.js",
+      "action": "modify",
+      "description": "Add a clear button next to each task in the task list that calls DELETE /agents/task/{task_id}. Add a 'Clear All Tasks' button at the top with confirmation dialog. Both should refresh the task list after successful deletion. Handle loading and error states."
+    }
+  ],
+  "integration_notes": "The clear buttons will be inline styled per existing patterns. Each task row needs a delete button (red styled, small) that shows a confirm dialog before calling the new DELETE endpoint. A 'Clear All Tasks' button at the top of the task list should also have a confirmation dialog. After deletion, refresh the task list by calling the GET /agents/tasks endpoint. Ensure the delete operations are atomic and clean up any sandbox processes associated with the task.",
+  "testing_instructions": "1. Navigate to /agents page as admin user\n2. Create a test task via 'Submit Task' button\n3. Click the delete button (X or trash icon) on the task row and confirm deletion\n4. Verify task is removed from the list and no longer appears in GET /agents/tasks\n5. Create multiple tasks\n6. Click 'Clear All Tasks' button at top with confirmation dialog\n7. Verify all tasks are deleted from the list\n8. Check that sandbox processes are stopped if any were running\n9. Test that non-admin users cannot access the delete endpoints (403 error)\n10. Verify deleted tasks don't appear even after page refresh"
+}
