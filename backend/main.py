@@ -17,8 +17,10 @@ from coverageUniverse import (
     delete_company, update_sector_index, update_sector_metrics,
     get_company_snapshot, METRIC_LABELS, format_metric
 )
+from agent_routes import router as agent_router
 
 app = FastAPI(title="Devine Intelligence Network")
+app.include_router(agent_router)
 
 def run_scheduler():
     NEW_YORK = pytz.timezone('America/New_York')
@@ -205,18 +207,18 @@ def get_contracts(
     user=Depends(get_current_user)
 ):
     try:
-        from contracts import get_opportunities, SAM_API_KEY
-        if not SAM_API_KEY:
-            raise HTTPException(status_code=500, detail="SAM_API_KEY not configured in .env")
-        opportunities = get_opportunities(
+        from contracts import get_opportunities
+        opportunities, error = get_opportunities(
             naics_filter=naics,
             set_aside_filter=set_aside,
             keyword=keyword,
             days_back=days_back
         )
-        return {"opportunities": opportunities, "count": len(opportunities)}
-    except HTTPException:
-        raise
+        return {
+            "opportunities": opportunities,
+            "count": len(opportunities),
+            "error": error,  # Will be None if everything is fine
+        }
     except Exception as e:
         import traceback
         traceback.print_exc()

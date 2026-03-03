@@ -8,6 +8,7 @@ import Chat from './pages/Chat'
 import CoverageUniverse from './pages/CoverageUniverse'
 import Company from './pages/Company'
 import Contracts from './pages/Contracts'
+import AgentHub from './pages/AgentHub';
 
 function App() {
   const [session, setSession] = useState(null)
@@ -69,6 +70,7 @@ function App() {
             ? <Contracts session={session} />
             : <Navigate to="/login" />}
         />
+        <Route path="/agents" element={<AgentHub token={token} />} />
       </Routes>
     </BrowserRouter>
   )
