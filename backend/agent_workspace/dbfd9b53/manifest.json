@@ -1,0 +1,15 @@
+{
+  "task_id": "dbfd9b53",
+  "task_title": "Test agents",
+  "built_at": "2026-03-02T23:55:17.160706",
+  "project_root": "C:\\Users\\patri\\OneDrive\\Desktop\\Devine-Intelligence-Network\\backend",
+  "files": [
+    {
+      "path": "frontend/src/pages/Dashboard.jsx",
+      "action": "modify",
+      "description": "Find the status indicator text that says 'All systems operational' in the top right status bar and change it to 'Agent System Online'. This is a single text string replacement only.",
+      "size": 7049,
+      "lines": 260
+    }
+  ]
+}

@@ -30,6 +30,7 @@ export default function Dashboard({ session, isAdmin }) {
             <div style={s.navGroup}>
               <div style={s.navGroupLabel}>System</div>
               <div style={s.navItem} onClick={() => navigate('/admin')}>Admin</div>
+              <div style={s.navItem} onClick={() => navigate('/agents')}>Agent Hub</div>
               <div style={s.navItem}>Settings</div>
             </div>
           )}
@@ -122,7 +123,7 @@ export default function Dashboard({ session, isAdmin }) {
               </div>
               <div style={s.agentMeta}>Coming Week 3</div>
             </div>
-            
+
             <div style={s.agentCard}>
               <div style={s.agentCardTop}>
                 <div style={s.agentNum}>05</div>
@@ -161,7 +162,6 @@ export default function Dashboard({ session, isAdmin }) {
               <div style={s.agentMeta}>Coming Week 5</div>
             </div>
 
-
             <div style={s.agentCard}>
               <div style={s.agentCardTop}>
                 <div style={s.agentNum}>06</div>
@@ -173,6 +173,20 @@ export default function Dashboard({ session, isAdmin }) {
               </div>
               <button style={s.agentBtn} onClick={() => navigate('/contracts')}>
                 Open Contracts
+              </button>
+            </div>
+
+            <div style={s.agentCard}>
+              <div style={s.agentCardTop}>
+                <div style={s.agentNum}>07</div>
+                <div style={{...s.agentStatus, ...s.statusReady}}>Active</div>
+              </div>
+              <div style={s.agentName}>Agent Hub</div>
+              <div style={s.agentDesc}>
+                Dispatch autonomous Builder, Breaker, and Teacher agents to improve this platform overnight. Review and approve changes before they go live.
+              </div>
+              <button style={s.agentBtn} onClick={() => navigate('/agents')}>
+                Open Agent Hub
               </button>
             </div>
 
@@ -381,6 +395,22 @@ const s = {
     fontFamily: "'DM Sans', Arial, sans-serif",
     letterSpacing: '0.04em',
   },
+  briefingButtons: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  },
+  sendBriefBtn: {
+    background: '#c8a96e',
+    border: 'none',
+    color: '#1a1a18',
+    padding: '8px 16px',
+    fontSize: '11px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontFamily: "'DM Sans', Arial, sans-serif",
+    letterSpacing: '0.04em',
+  },
   sectionLabel: {
     fontSize: '9px',
     fontWeight: '600',
@@ -461,22 +491,6 @@ const s = {
   agentMeta: {
     fontSize: '11px',
     color: '#c8c4bc',
-    letterSpacing: '0.04em',
-  },
-  briefingButtons: {
-  display: 'flex',
-  gap: '8px',
-  alignItems: 'center',
-  },
-  sendBriefBtn: {
-    background: '#c8a96e',
-    border: 'none',
-    color: '#1a1a18',
-    padding: '8px 16px',
-    fontSize: '11px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    fontFamily: "'DM Sans', Arial, sans-serif",
     letterSpacing: '0.04em',
   },
 }

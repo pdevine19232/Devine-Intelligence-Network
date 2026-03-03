@@ -1,0 +1,20 @@
+{
+  "task_id": "6c1726e9",
+  "task_title": "Fix preview in browser",
+  "built_at": "2026-03-03T00:31:40.556522",
+  "project_root": "C:\\Users\\patri\\OneDrive\\Desktop\\Devine-Intelligence-Network",
+  "files": [
+    {
+      "path": "backend/agents/sandbox_manager.py",
+      "action": "modify",
+      "description": "Fix preview_frontend_changes() to properly detect frontend files from Builder output, handle both relative and absolute paths, and improve error handling. Add better logging and validation for frontend/src directory.",
+      "error": "Both OpenAI and Claude failed: Error code: 429 - {'type': 'error', 'error': {'type': 'rate_limit_error', 'message': \"This request would exceed your organization's rate limit of 50,000 input tokens per minute (org: aa35f951-1bb4-4f1c-929c-63d6871c4330, model: claude-haiku-4-5-20251001). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://www.anthropic.com/contact-sales to discuss your options for a rate limit increase.\"}, 'request_id': 'req_011CYfbgZhHPj6mnfd5d2Xv5'}"
+    },
+    {
+      "path": "frontend/src/pages/AgentHub.jsx",
+      "action": "modify",
+      "description": "Improve the preview UI in TaskDetail: add clearer visual feedback when preview is active/inactive, show which files were applied, add timeout handling for preview status, and improve error messages when no frontend files exist.",
+      "error": "Both OpenAI and Claude failed: Error code: 429 - {'type': 'error', 'error': {'type': 'rate_limit_error', 'message': \"This request would exceed your organization's rate limit of 50,000 input tokens per minute (org: aa35f951-1bb4-4f1c-929c-63d6871c4330, model: claude-haiku-4-5-20251001). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://www.anthropic.com/contact-sales to discuss your options for a rate limit increase.\"}, 'request_id': 'req_011CYfbgwMH68saYsWGC8APb'}"
+    }
+  ]
+}

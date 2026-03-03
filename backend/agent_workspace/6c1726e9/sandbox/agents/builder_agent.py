@@ -15,34 +15,17 @@ Research: Perplexity API (for looking up docs, patterns, APIs)
 import os
 import json
 import re
-import time
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── Timeouts ──────────────────────────────────────────────────────────────────
-
-LLM_TIMEOUT_SECS     = 90    # max seconds to wait for a single LLM response
-RESEARCH_TIMEOUT_SECS = 30   # max seconds to wait for Perplexity research
-MAX_RETRIES          = 2     # reduced from 3 — fewer retries = faster failure
-
-# Only run Perplexity research when the task genuinely needs it
-RESEARCH_KEYWORDS = {
-    "api", "library", "package", "integrate", "oauth", "webhook",
-    "websocket", "stripe", "twilio", "sendgrid", "aws", "s3",
-    "algorithm", "encryption", "how to", "best practice"
-}
-
 # ── API Clients ───────────────────────────────────────────────────────────────
 
 try:
     from openai import OpenAI
-    openai_client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY"),
-        timeout=LLM_TIMEOUT_SECS,   # ← global timeout on the client
-    )
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 except Exception:
     openai_client = None
 
@@ -51,8 +34,7 @@ try:
     PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
     perplexity_client = PerplexityClient(
         api_key=PERPLEXITY_API_KEY,
-        base_url="https://api.perplexity.ai",
-        timeout=RESEARCH_TIMEOUT_SECS,  # ← timeout on research calls
+        base_url="https://api.perplexity.ai"
     ) if PERPLEXITY_API_KEY else None
 except Exception:
     perplexity_client = None
@@ -60,10 +42,7 @@ except Exception:
 # Fallback: use Anthropic if OpenAI not available
 try:
     import anthropic
-    anthropic_client = anthropic.Anthropic(
-        api_key=os.getenv("ANTHROPIC_API_KEY"),
-        timeout=LLM_TIMEOUT_SECS,   # ← global timeout on the client
-    )
+    anthropic_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 except Exception:
     anthropic_client = None
 
@@ -114,106 +93,18 @@ def read_local_codebase(project_root: str) -> dict:
     return files
 
 
-MAX_CONTEXT_CHARS = 25_000   # ~6k tokens — safe budget for planning calls
-MAX_FILE_CHARS   = 8_000    # truncate any single file beyond this
-
-# Files that are always most useful to include
-PRIORITY_FILES = {
-    "backend/main.py", "backend/agent_routes.py",
-    "frontend/src/App.js", "frontend/src/App.jsx",
-}
-
-
-def _lang(ext: str) -> str:
-    return {"py": "python", "jsx": "javascript", "js": "javascript",
-            "ts": "typescript", "tsx": "typescript"}.get(ext, ext)
-
-
-def format_codebase_for_prompt(files: dict, budget: int = MAX_CONTEXT_CHARS) -> str:
-    """
-    Format codebase dict into a readable string for LLM context.
-    Priority files go first; large files are truncated; total is capped at `budget` chars.
-    """
-    parts = ["# CURRENT CODEBASE (key files)\n"]
-    total = 0
-
-    # Sort: priority files first, then by size ascending (smaller = more room for more files)
-    def sort_key(item):
-        path, content = item
-        priority = 0 if path.replace("\\", "/") in PRIORITY_FILES else 1
-        return (priority, len(content))
-
-    for path, content in sorted(files.items(), key=sort_key):
-        if total >= budget:
-            break
+def format_codebase_for_prompt(files: dict) -> str:
+    """Format codebase dict into a readable string for LLM context."""
+    parts = ["# CURRENT CODEBASE\n"]
+    for path, content in sorted(files.items()):
         ext = Path(path).suffix.lstrip(".")
-        # Truncate individual large files
-        if len(content) > MAX_FILE_CHARS:
-            content = content[:MAX_FILE_CHARS] + f"\n... [truncated — {len(content)} chars total]"
-        block = f"## {path}\n```{_lang(ext)}\n{content}\n```\n"
-        if total + len(block) > budget:
-            parts.append(f"## {path}\n[skipped — context budget reached]\n")
-            break
-        parts.append(block)
-        total += len(block)
-
-    return "\n".join(parts)
-
-
-def format_focused_context(files: dict, target_path: str) -> str:
-    """
-    For file implementation calls, send only the most relevant files
-    instead of the whole codebase. Keeps prompts small.
-    """
-    target = Path(target_path)
-    target_dir = str(target.parent).replace("\\", "/")
-    target_name = target.stem.lower()
-
-    # Score files by relevance to target_path
-    def relevance(item):
-        path, content = item
-        p = path.replace("\\", "/")
-        score = 0
-        if p.replace("\\", "/") in PRIORITY_FILES:
-            score += 10
-        if str(Path(p).parent).replace("\\", "/") == target_dir:
-            score += 8          # same directory
-        stem_lower = Path(p).stem.lower()
-        if stem_lower in target_name or target_name in stem_lower:
-            score += 5          # similar name
-        if Path(p).suffix == target.suffix:
-            score += 2          # same file type
-        return -score           # negative = higher priority first
-
-    focused_budget = 18_000     # tighter budget per file implementation
-    parts = ["# RELEVANT CODEBASE FILES\n"]
-    total = 0
-
-    for path, content in sorted(files.items(), key=relevance):
-        if total >= focused_budget:
-            break
-        ext = Path(path).suffix.lstrip(".")
-        if len(content) > MAX_FILE_CHARS:
-            content = content[:MAX_FILE_CHARS] + f"\n... [truncated]"
-        block = f"## {path}\n```{_lang(ext)}\n{content}\n```\n"
-        if total + len(block) > focused_budget:
-            break
-        parts.append(block)
-        total += len(block)
-
+        lang = {"py": "python", "jsx": "javascript", "js": "javascript",
+                "ts": "typescript", "tsx": "typescript"}.get(ext, ext)
+        parts.append(f"## {path}\n```{lang}\n{content}\n```\n")
     return "\n".join(parts)
 
 
 # ── Research Tool ─────────────────────────────────────────────────────────────
-
-def _needs_research(description: str) -> bool:
-    """
-    Only run Perplexity research if the task genuinely needs external knowledge.
-    Simple UI/text changes don't need research — skipping it saves 15-30 seconds.
-    """
-    desc_lower = description.lower()
-    return any(kw in desc_lower for kw in RESEARCH_KEYWORDS)
-
 
 def research_with_perplexity(query: str) -> str:
     """Use Perplexity to research technical questions before building."""
@@ -229,7 +120,7 @@ def research_with_perplexity(query: str) -> str:
                 },
                 {"role": "user", "content": query}
             ],
-            max_tokens=1000,  # reduced — we just need key facts, not essays
+            max_tokens=2000,
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -238,68 +129,41 @@ def research_with_perplexity(query: str) -> str:
 
 # ── LLM Calls ─────────────────────────────────────────────────────────────────
 
-def call_llm(system: str, user: str, model: str = "gpt-4o", json_mode: bool = False,
-             retries: int = MAX_RETRIES) -> str:
-    """
-    Call GPT-4o (or fallback to Claude) for code generation.
-    Each call has a hard timeout (LLM_TIMEOUT_SECS).
-    Retries up to `retries` times with exponential backoff on rate-limit errors (429).
-    """
-    total_chars = len(system) + len(user)
-    print(f"[Builder] LLM call: model={model}, context={total_chars:,} chars (~{total_chars//4:,} tokens)")
+def call_llm(system: str, user: str, model: str = "gpt-4o", json_mode: bool = False) -> str:
+    """Call GPT-4o (or fallback to Claude) for code generation."""
 
     # Try OpenAI first
     if openai_client:
-        for attempt in range(retries):
-            try:
-                kwargs = {
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": system},
-                        {"role": "user", "content": user}
-                    ],
-                    "max_tokens": 8000,
-                    "temperature": 0.2,
-                }
-                if json_mode:
-                    kwargs["response_format"] = {"type": "json_object"}
-                response = openai_client.chat.completions.create(**kwargs)
-                return response.choices[0].message.content
-            except Exception as e:
-                err = str(e)
-                if "429" in err or "rate_limit" in err.lower():
-                    wait = (2 ** attempt) * 5   # 5s, 10s
-                    print(f"[Builder] OpenAI rate limit — waiting {wait}s (attempt {attempt+1}/{retries})...")
-                    time.sleep(wait)
-                elif "timeout" in err.lower() or "timed out" in err.lower():
-                    print(f"[Builder] OpenAI timed out after {LLM_TIMEOUT_SECS}s — falling back to Claude")
-                    break   # Don't retry timeouts, go straight to fallback
-                else:
-                    print(f"[Builder] OpenAI error, falling back to Claude: {e}")
-                    break   # Non-rate-limit error → skip retries, go to fallback
+        try:
+            kwargs = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user}
+                ],
+                "max_tokens": 8000,
+                "temperature": 0.2,
+            }
+            if json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
 
-    # Fallback to Claude (with retry on rate limit)
+            response = openai_client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"OpenAI error, falling back to Claude: {e}")
+
+    # Fallback to Claude
     if anthropic_client:
-        for attempt in range(retries):
-            try:
-                resp = anthropic_client.messages.create(
-                    model="claude-haiku-4-5-20251001",
-                    max_tokens=8000,
-                    system=system,
-                    messages=[{"role": "user", "content": user}],
-                )
-                return resp.content[0].text
-            except Exception as e:
-                err = str(e)
-                if "429" in err or "rate_limit" in err.lower():
-                    wait = (2 ** attempt) * 10   # 10s, 20s — Claude limits reset slowly
-                    print(f"[Builder] Claude rate limit — waiting {wait}s (attempt {attempt+1}/{retries})...")
-                    time.sleep(wait)
-                elif "timeout" in err.lower() or "timed out" in err.lower():
-                    raise RuntimeError(f"Claude timed out after {LLM_TIMEOUT_SECS}s. Try again later.")
-                else:
-                    raise RuntimeError(f"Both OpenAI and Claude failed: {e}")
-        raise RuntimeError("Both OpenAI and Claude failed: rate limit exhausted after retries")
+        try:
+            resp = anthropic_client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=8000,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+            )
+            return resp.content[0].text
+        except Exception as e:
+            raise RuntimeError(f"Both OpenAI and Claude failed: {e}")
 
     raise RuntimeError("No LLM available. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.")
 
@@ -387,32 +251,24 @@ def implement_file(
     task_title: str,
     task_description: str,
     full_plan: dict,
-    codebase_files: dict,
+    codebase_text: str,
     existing_content: str = None
 ) -> str:
     """
     Phase 2: Generate the complete content for one file.
-    Uses focused context (only relevant files) to stay within token limits.
     """
     action = file_plan.get("action", "create")
     path = file_plan["path"]
 
     if action == "modify" and existing_content:
-        # For modify: include the exact file being changed, truncated if needed
-        existing_snippet = existing_content
-        if len(existing_snippet) > MAX_FILE_CHARS:
-            existing_snippet = existing_snippet[:MAX_FILE_CHARS] + "\n... [truncated]"
         action_instruction = f"""You are MODIFYING an existing file.
 Current file content:
 ```
-{existing_snippet}
+{existing_content}
 ```
 Make ONLY the changes described below. Return the COMPLETE modified file."""
     else:
         action_instruction = "You are CREATING a new file. Write the complete, working file from scratch."
-
-    # Use focused context — only files relevant to this specific implementation
-    focused_context = format_focused_context(codebase_files, path)
 
     system = f"""You are a senior full-stack software engineer implementing a feature for the Devine Intelligence Network.
 
@@ -438,9 +294,10 @@ What it should do: {file_plan["description"]}
 
 Integration context: {full_plan.get("integration_notes", "")}
 
-Plan summary: {full_plan.get("plan_summary", "")}
+Full implementation plan:
+{json.dumps(full_plan, indent=2)}
 
-{focused_context}
+{codebase_text}
 
 Write the complete file content for {path}:"""
 
@@ -463,16 +320,10 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
     """
     from agents.task_manager import get_task
 
-    start_time = time.time()
-
     def log(msg):
-        elapsed = time.time() - start_time
-        print(f"[Builder:{task_id}] [{elapsed:.0f}s] {msg}")
+        print(f"[Builder:{task_id}] {msg}")
         if on_progress:
             on_progress(msg)
-
-    def elapsed_mins():
-        return (time.time() - start_time) / 60
 
     task = get_task(task_id)
     if not task:
@@ -487,24 +338,27 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
         codebase_files = read_local_codebase(project_root)
         log(f"Read {len(codebase_files)} source files")
     except Exception as e:
-        log(f"Could not read local codebase: {e}")
-        codebase_files = {}
-
-    # ── Step 2: Research (only when genuinely needed) ──────────────────────
-    research_text = ""
-    desc = task.get("description", "")
-    if perplexity_client and _needs_research(desc):
-        log("Task involves external APIs/libraries — researching with Perplexity...")
-        research_query = f"Best practices and implementation patterns for: {desc} in a FastAPI + React application"
-        research_text = research_with_perplexity(research_query)
-        log(f"Research complete ({len(research_text)} chars)")
+        log(f"Could not read local codebase, falling back to GitHub context: {e}")
+        try:
+            from github_context import get_codebase_context
+            codebase_text = get_codebase_context()
+            codebase_files = {}
+        except Exception:
+            codebase_text = "(Codebase unavailable)"
+            codebase_files = {}
     else:
-        log("Simple task — skipping Perplexity research to save time")
+        codebase_text = format_codebase_for_prompt(codebase_files)
+
+    # ── Step 2: Research (if needed) ──────────────────────────────────────
+    research_text = ""
+    if perplexity_client and len(task["description"]) > 50:
+        log("Researching best practices with Perplexity...")
+        research_query = f"Best practices and implementation patterns for: {task['description']} in a FastAPI + React application"
+        research_text = research_with_perplexity(research_query)
+        log("Research complete")
 
     # ── Step 3: Plan ──────────────────────────────────────────────────────
     log("Planning implementation...")
-    codebase_text = format_codebase_for_prompt(codebase_files)
-    log(f"Planning context: {len(codebase_text):,} chars")
     plan = plan_task(
         task["title"],
         task["description"],
@@ -529,8 +383,10 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
         # Get existing content if modifying
         existing_content = None
         if action == "modify":
+            # Try to read from local codebase first
             existing_content = codebase_files.get(path)
             if not existing_content:
+                # Try reading from disk
                 full_path = Path(project_root) / path
                 if full_path.exists():
                     existing_content = full_path.read_text(encoding="utf-8", errors="ignore")
@@ -541,7 +397,7 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
                 task_title=task["title"],
                 task_description=task["description"],
                 full_plan=plan,
-                codebase_files=codebase_files,
+                codebase_text=codebase_text,
                 existing_content=existing_content,
             )
 
@@ -586,9 +442,6 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
     successful = [f for f in files_written if "error" not in f]
     failed = [f for f in files_written if "error" in f]
 
-    total_time = elapsed_mins()
-    log(f"Builder complete in {total_time:.1f} min. {len(successful)} files written, {len(failed)} failed.")
-
     builder_report = {
         "plan_summary": plan.get("plan_summary", ""),
         "integration_notes": plan.get("integration_notes", ""),
@@ -598,13 +451,13 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
         "files_failed": len(failed),
         "workspace_dir": str(workspace_dir),
         "research_used": bool(research_text),
-        "total_time_mins": round(total_time, 1),
         "built_at": datetime.now().isoformat(),
     }
 
     if failed:
         builder_report["failures"] = [f"{f['path']}: {f['error']}" for f in failed]
 
+    log(f"Builder complete. {len(successful)} files written, {len(failed)} failed.")
     return builder_report
 
 

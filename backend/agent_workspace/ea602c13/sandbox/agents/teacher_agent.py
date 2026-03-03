@@ -63,8 +63,8 @@ def call_teacher_llm(system: str, user: str) -> str:
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
-                max_tokens=1500,
-                temperature=0.2,
+                max_tokens=6000,
+                temperature=0.4,
             )
             return resp.choices[0].message.content
         except Exception as e:
@@ -77,8 +77,8 @@ def call_teacher_llm(system: str, user: str) -> str:
             response = model.generate_content(
                 f"{system}\n\n{user}",
                 generation_config=genai.types.GenerationConfig(
-                    max_output_tokens=1500,
-                    temperature=0.2,
+                    max_output_tokens=6000,
+                    temperature=0.4,
                 )
             )
             return response.text
@@ -90,7 +90,7 @@ def call_teacher_llm(system: str, user: str) -> str:
         try:
             resp = anthropic_client.messages.create(
                 model="claude-haiku-4-5-20251001",
-                max_tokens=1500,
+                max_tokens=6000,
                 system=system,
                 messages=[{"role": "user", "content": user}],
             )
@@ -103,15 +103,18 @@ def call_teacher_llm(system: str, user: str) -> str:
 
 # ── Teacher Prompts ───────────────────────────────────────────────────────────
 
-TEACHER_SYSTEM = """You are a technical briefer. Your job is to give Patrick Devine — a financial analyst who built this app — a fast, no-fluff summary of what just changed in his codebase.
+TEACHER_SYSTEM = """You are a patient, gifted educator who teaches software development concepts to smart non-developers.
 
-Rules:
-- Be concise. Every sentence must earn its place. Cut analogies, metaphors, and filler.
-- Use plain English but don't over-explain. Patrick is smart.
-- Bullet points over paragraphs. Short bullets over long ones.
-- No "Great news!", no "Think of it like...", no warm-up sentences.
-- Technical terms are fine — just define them inline in parentheses if they're obscure.
-- Target length: 200–350 words total. Never exceed 500.
+Your student is Patrick Devine — a financial analyst who built this app and wants to deeply understand everything that gets built in it. He's intelligent and picks things up quickly but doesn't write code day-to-day.
+
+Your job is to explain what was just built as if you were a knowledgeable friend explaining it over coffee. Use:
+- Plain English, not jargon (or explain jargon when you use it)
+- Analogies to things Patrick would know (finance, banking, how businesses work)
+- Concrete examples of what the feature does from a user's perspective
+- Explanations of the "why" — not just what the code does, but why it was built that way
+
+Structure your response as a well-formatted explanation with clear sections.
+Be thorough but conversational. Think: "smart friend explaining their work" not "textbook definition."
 """
 
 
@@ -153,37 +156,32 @@ Issues found: {breaker_report.get('critical_count', 0)} critical, {breaker_repor
             f"- {f['file']}: {f['issue']}" for f in high
         )
 
-    user_prompt = f"""Task: {task_title}
-Goal: {task_description}
+    user_prompt = f"""Here's what was just built for your Devine Intelligence Network app:
 
-What was built:
+TASK: {task_title}
+GOAL: {task_description}
+
+WHAT THE BUILDER BUILT:
 {builder_report.get('plan_summary', '')}
 
-Files changed:
+FILES CREATED/MODIFIED:
 {files_text}
 
-Security/quality findings:
-{breaker_summary}
-
-How to test:
+HOW TO TEST IT (from the Builder):
 {builder_report.get('testing_instructions', 'Not specified')}
 
----
-Give me a brief covering exactly these four sections — use the headers below, keep each section tight:
+WHAT THE QUALITY CHECKER (BREAKER) FOUND:
+{breaker_summary}
 
-## What changed
-1–3 bullets. What does this feature do, from a user's perspective? What problem does it solve?
+Now explain all of this to me as if I'm a smart non-developer who built this app and wants to understand:
+1. What was actually built and what it does (from a user's perspective)
+2. What each major file does and why it exists
+3. How the pieces connect together
+4. What the Breaker found and why it matters (or doesn't)
+5. What I should actually test to make sure this works
+6. Any concepts introduced that I should understand
 
-## How it works
-1–4 bullets. Key files and what each one does. Only include files that matter.
-
-## Issues to know about
-Only include if there are critical or high severity findings. One line per issue. Skip this section entirely if there's nothing critical.
-
-## How to test it
-2–4 concrete steps. Specific actions, not vague instructions.
-
-No intro sentence. No outro. Start directly with "## What changed"."""
+Be warm, clear, and thorough. Use analogies to finance or business where helpful."""
 
     return call_teacher_llm(TEACHER_SYSTEM, user_prompt)
 

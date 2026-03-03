@@ -70,7 +70,11 @@ function App() {
             ? <Contracts session={session} />
             : <Navigate to="/login" />}
         />
-        <Route path="/agents" element={session && isAdmin ? <AgentHub token={session.access_token} /> : <Navigate to="/login" />} />
+        <Route path="/agents"
+          element={session && isAdmin
+            ? <AgentHub token={session.access_token} />
+            : <Navigate to="/login" />}
+        />
       </Routes>
     </BrowserRouter>
   )

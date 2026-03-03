@@ -13,7 +13,6 @@ When the user approves or rejects, the sandbox is stopped.
 
 import os
 import sys
-import stat
 import shutil
 import subprocess
 import signal
@@ -30,19 +29,6 @@ SANDBOX_PORT = int(os.getenv("SANDBOX_PORT", "8001"))
 _running_sandboxes: dict = {}
 
 
-def _force_remove(func, path, exc_info):
-    """
-    Error handler for shutil.rmtree on Windows.
-    If a file is read-only (common with OneDrive-synced folders),
-    this resets its permissions and retries the delete.
-    """
-    try:
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
-    except Exception:
-        pass  # Best-effort; ignore if still can't remove
-
-
 def create_sandbox_dir(task_id: str, project_root: str) -> Path:
     """
     Build the sandbox directory by merging:
@@ -55,7 +41,7 @@ def create_sandbox_dir(task_id: str, project_root: str) -> Path:
     sandbox_dir = workspace_dir / "sandbox"
 
     if sandbox_dir.exists():
-        shutil.rmtree(sandbox_dir, onerror=_force_remove)
+        shutil.rmtree(sandbox_dir)
     sandbox_dir.mkdir(parents=True)
 
     root = Path(project_root)
@@ -256,7 +242,7 @@ def preview_frontend_changes(task_id: str, project_root: str = None) -> dict:
 
     # Back up the current frontend/src so we can restore it later
     if backup_dir.exists():
-        shutil.rmtree(backup_dir, onerror=_force_remove)
+        shutil.rmtree(backup_dir)
     shutil.copytree(frontend_src, backup_dir)
     print(f"[Preview] Backed up frontend/src to {backup_dir}")
 
@@ -298,7 +284,7 @@ def preview_frontend_changes(task_id: str, project_root: str = None) -> dict:
 
     if not applied:
         # Restore backup since nothing was applied
-        shutil.rmtree(frontend_src, onerror=_force_remove)
+        shutil.rmtree(frontend_src)
         shutil.copytree(backup_dir, frontend_src)
         return {
             "previewing": False,
@@ -327,7 +313,7 @@ def restore_frontend_preview(task_id: str, project_root: str = None) -> dict:
         return {"restored": False, "error": "No backup found — preview may not have been started"}
 
     if frontend_src.exists():
-        shutil.rmtree(frontend_src, onerror=_force_remove)
+        shutil.rmtree(frontend_src)
     shutil.copytree(backup_dir, frontend_src)
 
     _active_previews.pop(task_id, None)

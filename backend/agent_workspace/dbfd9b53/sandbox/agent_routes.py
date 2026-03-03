@@ -202,45 +202,6 @@ def sandbox_status(task_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/task/{task_id}/preview")
-def preview_task(task_id: str, user=Depends(require_admin)):
-    """
-    Apply Builder's frontend changes to localhost:3000 temporarily.
-    User can click around and see the real UI before approving.
-    Call /restore-preview to undo.
-    """
-    try:
-        from agents.task_manager import get_task
-        task = get_task(task_id)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
-
-        from agents.sandbox_manager import preview_frontend_changes
-        result = preview_frontend_changes(task_id=task_id, project_root=PROJECT_ROOT)
-
-        if result.get("error") and not result.get("previewing"):
-            raise HTTPException(status_code=400, detail=result["error"])
-
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/task/{task_id}/restore-preview")
-def restore_task_preview(task_id: str, user=Depends(require_admin)):
-    """
-    Restore the frontend back to its original state after a preview.
-    """
-    try:
-        from agents.sandbox_manager import restore_frontend_preview
-        result = restore_frontend_preview(task_id=task_id, project_root=PROJECT_ROOT)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.delete("/task/{task_id}")
 def delete_agent_task(task_id: str, user=Depends(require_admin)):
     """Delete a task and its workspace directory."""

@@ -1,0 +1,19 @@
+{
+  "plan_summary": "Fix the preview in browser feature by implementing a proper frontend file sync mechanism. The current preview_frontend_changes() function needs to handle file detection, backup/restore logic, and provide real-time feedback to the user about what files are being previewed and when the preview is active.",
+  "needs_research": false,
+  "research_queries": [],
+  "files": [
+    {
+      "path": "backend/agents/sandbox_manager.py",
+      "action": "modify",
+      "description": "Fix preview_frontend_changes() to properly detect frontend files from Builder output, handle both relative and absolute paths, and improve error handling. Add better logging and validation for frontend/src directory."
+    },
+    {
+      "path": "frontend/src/pages/AgentHub.jsx",
+      "action": "modify",
+      "description": "Improve the preview UI in TaskDetail: add clearer visual feedback when preview is active/inactive, show which files were applied, add timeout handling for preview status, and improve error messages when no frontend files exist."
+    }
+  ],
+  "integration_notes": "The preview feature works by temporarily copying Builder's frontend files to your live frontend/src directory. When the user clicks 'PREVIEW IN BROWSER \u2192', the backend syncs files and returns a list of what was applied. The user then refreshes localhost:3000 to see changes. The key issue is that preview_frontend_changes() may not be correctly identifying and copying frontend files from the workspace. Fix: (1) ensure workspace files are properly prefixed/unprefixed when copying to frontend/src, (2) validate that frontend/src exists before attempting copy, (3) return detailed feedback about which files were applied, (4) handle case where no frontend files exist gracefully.",
+  "testing_instructions": "1. Create a test task with both backend AND frontend changes (e.g., modify frontend/src/pages/Dashboard.jsx). 2. Wait for the task to reach 'review' status. 3. In the task detail, click 'PREVIEW IN BROWSER \u2192'. 4. Check the response: it should say 'Previewing: N files applied' and list the files. 5. Refresh http://localhost:3000 and verify the changes are visible. 6. Click 'RESTORE ORIGINAL' and refresh again \u2014 changes should be gone. 7. Test with a task that has NO frontend files \u2014 error message should be clear about why preview isn't available."
+}

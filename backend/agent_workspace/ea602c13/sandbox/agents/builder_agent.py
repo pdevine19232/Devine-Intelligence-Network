@@ -22,27 +22,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── Timeouts ──────────────────────────────────────────────────────────────────
-
-LLM_TIMEOUT_SECS     = 90    # max seconds to wait for a single LLM response
-RESEARCH_TIMEOUT_SECS = 30   # max seconds to wait for Perplexity research
-MAX_RETRIES          = 2     # reduced from 3 — fewer retries = faster failure
-
-# Only run Perplexity research when the task genuinely needs it
-RESEARCH_KEYWORDS = {
-    "api", "library", "package", "integrate", "oauth", "webhook",
-    "websocket", "stripe", "twilio", "sendgrid", "aws", "s3",
-    "algorithm", "encryption", "how to", "best practice"
-}
-
 # ── API Clients ───────────────────────────────────────────────────────────────
 
 try:
     from openai import OpenAI
-    openai_client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY"),
-        timeout=LLM_TIMEOUT_SECS,   # ← global timeout on the client
-    )
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 except Exception:
     openai_client = None
 
@@ -51,8 +35,7 @@ try:
     PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
     perplexity_client = PerplexityClient(
         api_key=PERPLEXITY_API_KEY,
-        base_url="https://api.perplexity.ai",
-        timeout=RESEARCH_TIMEOUT_SECS,  # ← timeout on research calls
+        base_url="https://api.perplexity.ai"
     ) if PERPLEXITY_API_KEY else None
 except Exception:
     perplexity_client = None
@@ -60,10 +43,7 @@ except Exception:
 # Fallback: use Anthropic if OpenAI not available
 try:
     import anthropic
-    anthropic_client = anthropic.Anthropic(
-        api_key=os.getenv("ANTHROPIC_API_KEY"),
-        timeout=LLM_TIMEOUT_SECS,   # ← global timeout on the client
-    )
+    anthropic_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 except Exception:
     anthropic_client = None
 
@@ -206,15 +186,6 @@ def format_focused_context(files: dict, target_path: str) -> str:
 
 # ── Research Tool ─────────────────────────────────────────────────────────────
 
-def _needs_research(description: str) -> bool:
-    """
-    Only run Perplexity research if the task genuinely needs external knowledge.
-    Simple UI/text changes don't need research — skipping it saves 15-30 seconds.
-    """
-    desc_lower = description.lower()
-    return any(kw in desc_lower for kw in RESEARCH_KEYWORDS)
-
-
 def research_with_perplexity(query: str) -> str:
     """Use Perplexity to research technical questions before building."""
     if not perplexity_client:
@@ -229,7 +200,7 @@ def research_with_perplexity(query: str) -> str:
                 },
                 {"role": "user", "content": query}
             ],
-            max_tokens=1000,  # reduced — we just need key facts, not essays
+            max_tokens=2000,
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -239,10 +210,9 @@ def research_with_perplexity(query: str) -> str:
 # ── LLM Calls ─────────────────────────────────────────────────────────────────
 
 def call_llm(system: str, user: str, model: str = "gpt-4o", json_mode: bool = False,
-             retries: int = MAX_RETRIES) -> str:
+             retries: int = 3) -> str:
     """
     Call GPT-4o (or fallback to Claude) for code generation.
-    Each call has a hard timeout (LLM_TIMEOUT_SECS).
     Retries up to `retries` times with exponential backoff on rate-limit errors (429).
     """
     total_chars = len(system) + len(user)
@@ -268,12 +238,9 @@ def call_llm(system: str, user: str, model: str = "gpt-4o", json_mode: bool = Fa
             except Exception as e:
                 err = str(e)
                 if "429" in err or "rate_limit" in err.lower():
-                    wait = (2 ** attempt) * 5   # 5s, 10s
-                    print(f"[Builder] OpenAI rate limit — waiting {wait}s (attempt {attempt+1}/{retries})...")
+                    wait = (2 ** attempt) * 5   # 5s, 10s, 20s
+                    print(f"[Builder] OpenAI rate limit — waiting {wait}s before retry {attempt+1}/{retries}...")
                     time.sleep(wait)
-                elif "timeout" in err.lower() or "timed out" in err.lower():
-                    print(f"[Builder] OpenAI timed out after {LLM_TIMEOUT_SECS}s — falling back to Claude")
-                    break   # Don't retry timeouts, go straight to fallback
                 else:
                     print(f"[Builder] OpenAI error, falling back to Claude: {e}")
                     break   # Non-rate-limit error → skip retries, go to fallback
@@ -292,11 +259,9 @@ def call_llm(system: str, user: str, model: str = "gpt-4o", json_mode: bool = Fa
             except Exception as e:
                 err = str(e)
                 if "429" in err or "rate_limit" in err.lower():
-                    wait = (2 ** attempt) * 10   # 10s, 20s — Claude limits reset slowly
-                    print(f"[Builder] Claude rate limit — waiting {wait}s (attempt {attempt+1}/{retries})...")
+                    wait = (2 ** attempt) * 10   # 10s, 20s, 40s — Claude limits reset slowly
+                    print(f"[Builder] Claude rate limit — waiting {wait}s before retry {attempt+1}/{retries}...")
                     time.sleep(wait)
-                elif "timeout" in err.lower() or "timed out" in err.lower():
-                    raise RuntimeError(f"Claude timed out after {LLM_TIMEOUT_SECS}s. Try again later.")
                 else:
                     raise RuntimeError(f"Both OpenAI and Claude failed: {e}")
         raise RuntimeError("Both OpenAI and Claude failed: rate limit exhausted after retries")
@@ -463,16 +428,10 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
     """
     from agents.task_manager import get_task
 
-    start_time = time.time()
-
     def log(msg):
-        elapsed = time.time() - start_time
-        print(f"[Builder:{task_id}] [{elapsed:.0f}s] {msg}")
+        print(f"[Builder:{task_id}] {msg}")
         if on_progress:
             on_progress(msg)
-
-    def elapsed_mins():
-        return (time.time() - start_time) / 60
 
     task = get_task(task_id)
     if not task:
@@ -487,22 +446,20 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
         codebase_files = read_local_codebase(project_root)
         log(f"Read {len(codebase_files)} source files")
     except Exception as e:
-        log(f"Could not read local codebase: {e}")
+        log(f"Could not read local codebase, falling back to GitHub context: {e}")
         codebase_files = {}
 
-    # ── Step 2: Research (only when genuinely needed) ──────────────────────
+    # ── Step 2: Research (if needed) ──────────────────────────────────────
     research_text = ""
-    desc = task.get("description", "")
-    if perplexity_client and _needs_research(desc):
-        log("Task involves external APIs/libraries — researching with Perplexity...")
-        research_query = f"Best practices and implementation patterns for: {desc} in a FastAPI + React application"
+    if perplexity_client and len(task["description"]) > 50:
+        log("Researching best practices with Perplexity...")
+        research_query = f"Best practices and implementation patterns for: {task['description']} in a FastAPI + React application"
         research_text = research_with_perplexity(research_query)
-        log(f"Research complete ({len(research_text)} chars)")
-    else:
-        log("Simple task — skipping Perplexity research to save time")
+        log("Research complete")
 
     # ── Step 3: Plan ──────────────────────────────────────────────────────
     log("Planning implementation...")
+    # Use the capped codebase text only for planning
     codebase_text = format_codebase_for_prompt(codebase_files)
     log(f"Planning context: {len(codebase_text):,} chars")
     plan = plan_task(
@@ -529,8 +486,10 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
         # Get existing content if modifying
         existing_content = None
         if action == "modify":
+            # Try to read from local codebase first
             existing_content = codebase_files.get(path)
             if not existing_content:
+                # Try reading from disk
                 full_path = Path(project_root) / path
                 if full_path.exists():
                     existing_content = full_path.read_text(encoding="utf-8", errors="ignore")
@@ -586,9 +545,6 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
     successful = [f for f in files_written if "error" not in f]
     failed = [f for f in files_written if "error" in f]
 
-    total_time = elapsed_mins()
-    log(f"Builder complete in {total_time:.1f} min. {len(successful)} files written, {len(failed)} failed.")
-
     builder_report = {
         "plan_summary": plan.get("plan_summary", ""),
         "integration_notes": plan.get("integration_notes", ""),
@@ -598,13 +554,13 @@ def run_builder(task_id: str, project_root: str, on_progress=None) -> dict:
         "files_failed": len(failed),
         "workspace_dir": str(workspace_dir),
         "research_used": bool(research_text),
-        "total_time_mins": round(total_time, 1),
         "built_at": datetime.now().isoformat(),
     }
 
     if failed:
         builder_report["failures"] = [f"{f['path']}: {f['error']}" for f in failed]
 
+    log(f"Builder complete. {len(successful)} files written, {len(failed)} failed.")
     return builder_report
 
 
